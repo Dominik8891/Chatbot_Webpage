@@ -16,8 +16,8 @@ class PdoConnect
         $this->host = $config['host'];
         $this->port = $config['port'];
         $this->dbname = $config['dbname'];
-        $this->dbusername = $config['dbusername'];
-        $this->dbpassword = $config['dbpassword'];
+        $this->dbusername = $config['username'];
+        $this->dbpassword = $config['password'];
 
         // Datenbankverbindung herstellen
         try {

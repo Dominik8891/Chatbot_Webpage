@@ -4,7 +4,7 @@ class User
 {
     private $id;
     private $status;
-    private $role;
+    private $usertype;
     private $username;
     private $email;
     private $pwd;
@@ -14,7 +14,10 @@ class User
     {
         if($in_id > 0)
         {
-            $query = 'SELECT * FROM user WHERE user_id = :user_id;';
+            $query = "SELECT u.*, ut.name 
+                      FROM user u 
+                      JOIN usertype ut ON u.ut_id = ut.ut_id 
+                      WHERE user_id = :user_id;";
             $stmt  = PdoConnect::$connection->prepare($query);
             $stmt  ->bindParam(':user_id', $in_id);
             $stmt  ->execute();
@@ -24,20 +27,20 @@ class User
             {
                 $this->id       = $result[0]['user_id'];
                 $this->status   = $result[0]['status'];
-                $this->role     = $result[0]['role'];
+                $this->usertype = $result[0]['name'];
                 $this->username = $result[0]['username'];
                 $this->email    = $result[0]['email'];
                 $this->pwd      = $result[0]['password'];
                 $this->deleted  = $result[0]['deleted'];
             }
-            elseif(count($stmt->fetchAll()) >= 2)
+            /*elseif(count($stmt->fetchAll()) >= 2)
             {
                 die("Fehler: Mehr als einen Datensatz gefunden!");
             }
             else
             {
                 die("Fehler: Keinen Datensatz trotz ID gefunden!");
-            }
+            }*/
         }
         else
         {
@@ -55,8 +58,8 @@ class User
             return;
         }
 
-        $query = "INSERT INTO user ( username,  email,  password)
-                            VALUES (:username, :email, :password);";
+        $query = "INSERT INTO user (ut_id,  username,  email,  password)
+                            VALUES (1,     :username, :email, :password);";
         $stmt  = PdoConnect::$connection->prepare($query);
         $stmt  ->bindParam(":username", $this->username);
         $stmt  ->bindParam(":email"   , $this->email);
@@ -73,9 +76,9 @@ class User
             return;
         }
 
-        $query = "UPDATE user SET
+        $query = "UPDATE user u JOIN usertype ut on u.ut_id = ut.ut_id SET
                             status   = :status,
-                            role     = :role,
+                            name     = :name,
                             username = :username,
                             email    = :email,
                             password = :password,
@@ -84,7 +87,7 @@ class User
 
         $stmt = PdoConnect::$connection->prepare($query);
         $stmt ->bindParam(":status", $this->status);
-        $stmt ->bindParam(":role", $this->role);
+        $stmt ->bindParam(":name", $this->usertype);
         $stmt ->bindParam(":username", $this->username);
         $stmt ->bindParam(":email", $this->email);
         $stmt ->bindParam(":password", $this->pwd);
@@ -119,10 +122,11 @@ class User
 
     public function login($in_username, $in_pwd)
     {
-        $query = "SELECT * FROM user
+        $query = "SELECT u.*, ut.name FROM user u
+                            JOIN usertype ut ON u.ut_id = ut.ut_id
                             WHERE username = :username AND
                                   password = :password AND
-                                  deleted  = 0;";
+                                  u.deleted  = 0;";
         $stmt = PdoConnect::$connection->prepare($query);
         $stmt ->bindParam(":username", $in_username);
         $stmt ->bindParam(":password", $in_pwd);
@@ -146,7 +150,9 @@ class User
             #endregion
             #endregion
             */
-            return $result[0]['ku_id'];
+            $this->id = $result[0]['user_id'];
+            $this->usertype = $result[0]['name'];
+            return $this->id;
         }
         else
         {
@@ -171,6 +177,23 @@ class User
         return false;
     }
 
+    public function check_if_email_exists()
+    {
+        $query = "SELECT * FROM user WHERE email = :email";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(":email", $this->email);
+
+        $result = $stmt->execute();
+
+        if($result != null)
+        {
+            return true;
+        }
+        // fragen ob man das so schreiben kann oder ob das in ein else muss
+        // weil return true bricht theoretisch die funktion ab bevor es bei return false ankommt
+        return false;
+    }
+
     public function get_user_info_as_array()
     {
         if($this->id < 0)
@@ -179,7 +202,7 @@ class User
         }
         $temp_array = [];
         array_push($temp_array, $this->status);
-        array_push($temp_array, $this->role);
+        array_push($temp_array, $this->usertype);
         array_push($temp_array, $this->username);
         array_push($temp_array, $this->email);
         return $temp_array;
@@ -196,19 +219,24 @@ class User
         return $temp_array;
     }
 
+    public function get_id()
+    {
+        return $this->id;
+    }
+
     public function get_status()
     {
         return $this->status;
     }
 
-    public function get_role()
+    public function get_usertype()
     {
-        return $this->role;
+        return $this->usertype;
     }
 
     public function get_username()
     {
-        return $this->role;
+        return $this->username;
     }
 
     public function get_email()
@@ -216,14 +244,19 @@ class User
         return $this->email;
     }
 
+    public function get_pwd()
+    {
+        return $this->pwd;
+    }
+
     public function set_status($in_status)
     {
         $this->status = $in_status;
     }
 
-    public function set_role($in_role)
+    public function set_role($in_usertype)
     {
-        $this->role = $in_role;
+        $this->usertype = $in_usertype;
     }
 
     public function set_username($in_username)
@@ -234,5 +267,10 @@ class User
     public function set_email($in_email)
     {
         $this->email = $in_email;
+    }
+
+    public function set_pwd($in_pwd)
+    {
+        $this->pwd = $in_pwd;
     }
 }
