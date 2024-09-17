@@ -1,0 +1,238 @@
+<?php
+
+class User
+{
+    private $id;
+    private $status;
+    private $role;
+    private $username;
+    private $email;
+    private $pwd;
+    private $deleted;
+
+    public function __construct(string|int $in_id = 0)
+    {
+        if($in_id > 0)
+        {
+            $query = 'SELECT * FROM user WHERE user_id = :user_id;';
+            $stmt  = PdoConnect::$connection->prepare($query);
+            $stmt  ->bindParam(':user_id', $in_id);
+            $stmt  ->execute();
+
+            $result = $stmt->fetchAll();
+            if(count($result) == 1)
+            {
+                $this->id       = $result[0]['user_id'];
+                $this->status   = $result[0]['status'];
+                $this->role     = $result[0]['role'];
+                $this->username = $result[0]['username'];
+                $this->email    = $result[0]['email'];
+                $this->pwd      = $result[0]['password'];
+                $this->deleted  = $result[0]['deleted'];
+            }
+            elseif(count($stmt->fetchAll()) >= 2)
+            {
+                die("Fehler: Mehr als einen Datensatz gefunden!");
+            }
+            else
+            {
+                die("Fehler: Keinen Datensatz trotz ID gefunden!");
+            }
+        }
+        else
+        {
+            //neuen Benutzer anlegen
+            $this->id = 0;
+            $this->deleted = 0;
+        }
+    }
+
+    private function create()
+    {
+        if($this->id > 0)
+        {
+            echo "Fehler: Create mit ID > 0 versucht!";
+            return;
+        }
+
+        $query = "INSERT INTO user ( username,  email,  password)
+                            VALUES (:username, :email, :password);";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(":username", $this->username);
+        $stmt  ->bindParam(":email"   , $this->email);
+        $stmt  ->bindParam(":password", $this->pwd);
+
+        $stmt  ->execute();
+    }
+
+    private function update()
+    {
+        if($this->id < 1)
+        {
+            echo "Fehler: Update mit ID 0 versucht!";
+            return;
+        }
+
+        $query = "UPDATE user SET
+                            status   = :status,
+                            role     = :role,
+                            username = :username,
+                            email    = :email,
+                            password = :password,
+                            deleted  = :deleted
+                    WHERE user_id    = _user_id;";
+
+        $stmt = PdoConnect::$connection->prepare($query);
+        $stmt ->bindParam(":status", $this->status);
+        $stmt ->bindParam(":role", $this->role);
+        $stmt ->bindParam(":username", $this->username);
+        $stmt ->bindParam(":email", $this->email);
+        $stmt ->bindParam(":password", $this->pwd);
+        $stmt ->bindParam(":deleted", $this->deleted);
+
+        $stmt ->execute();
+    }
+
+    public function save()
+    {
+        if($this->id > 0)
+        {
+            $this->update();
+        }
+        else
+        {
+            $this->create();
+        }
+    }
+
+    public function del_it()
+    {
+        if($this->id < 1)
+        {
+            echo "Fehler: Delete mit ID = 0 versucht!";
+            return;
+        }
+        $this->deleted = 1;
+
+        $this->update();
+    }
+
+    public function login($in_username, $in_pwd)
+    {
+        $query = "SELECT * FROM user
+                            WHERE username = :username AND
+                                  password = :password AND
+                                  deleted  = 0;";
+        $stmt = PdoConnect::$connection->prepare($query);
+        $stmt ->bindParam(":username", $in_username);
+        $stmt ->bindParam(":password", $in_pwd);
+
+        $stmt ->execute();
+
+        $result = $stmt->fetchAll();
+        if(count($result) == 1)
+        {
+            /*
+            #endregion#endregion
+            #endregion#endregion
+            #endregion#endregion
+            #endregion#endregion
+
+            hier noch nach arbeiten für rolle also ob normaler nutzer oder admin oder dozent!!!!!
+
+            #endregion
+            #endregion
+            #endregion
+            #endregion
+            #endregion
+            */
+            return $result[0]['ku_id'];
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public function check_if_username_exists()
+    {
+        $query = "SELECT * FROM user WHERE username = :username";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(":username", $this->username);
+
+        $result = $stmt->execute();
+
+        if($result != null)
+        {
+            return true;
+        }
+        // fragen ob man das so schreiben kann oder ob das in ein else muss
+        // weil return true bricht theoretisch die funktion ab bevor es bei return false ankommt
+        return false;
+    }
+
+    public function get_user_info_as_array()
+    {
+        if($this->id < 0)
+        {
+            die("Fehler: keine User Info vorhanden!");
+        }
+        $temp_array = [];
+        array_push($temp_array, $this->status);
+        array_push($temp_array, $this->role);
+        array_push($temp_array, $this->username);
+        array_push($temp_array, $this->email);
+        return $temp_array;
+    }
+
+    public function getAll()
+    {
+        $temp_array = [];
+        $query = "SELECT user_id FROM user WHERE deleted = 0;";
+        foreach(PdoConnect::$connection->query($query) as $row)
+        {
+            array_push($temp_array, $row[0]);
+        }
+        return $temp_array;
+    }
+
+    public function get_status()
+    {
+        return $this->status;
+    }
+
+    public function get_role()
+    {
+        return $this->role;
+    }
+
+    public function get_username()
+    {
+        return $this->role;
+    }
+
+    public function get_email()
+    {
+        return $this->email;
+    }
+
+    public function set_status($in_status)
+    {
+        $this->status = $in_status;
+    }
+
+    public function set_role($in_role)
+    {
+        $this->role = $in_role;
+    }
+
+    public function set_username($in_username)
+    {
+        $this->username = $in_username;
+    }
+
+    public function set_email($in_email)
+    {
+        $this->email = $in_email;
+    }
+}

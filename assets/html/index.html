@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adminpanel Chatbot für Umschüler</title>
+</head>
+<body>
+    <script>
+		
+        function del( in_url )
+        {
+            if( window.confirm("Wollen Sie den Datensatz wirklich löschen?") == true ) 
+            {
+                window.location.href = in_url;
+            }
+            else
+            {
+                alert( "  lösche abgebrochen "  );
+            }
+        }
+    
+    </script>
+
+    <nav>
+        Meine Navigation <br>
+        <a href="index.php?act=list_user">User</a>
+        ###LOGOUT###
+    </nav>
+
+    <div id="content" style="border: 2px solid #ccc; padding: 8px;">
+    
+        ###CONTENT###
+
+    </div>
+
+</body>
+</html>

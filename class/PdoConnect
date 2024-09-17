@@ -1,0 +1,32 @@
+<?php
+
+class PdoConnect
+{
+    private $host;
+    private $port;
+    private $dbname;
+    private $dbusername;
+    private $dbpassword;
+    public  static $connection = null;
+
+    public function __construct()
+    {
+        // Lade Konfigurationsdaten aus config.php
+        $config = include 'config/config.php';
+        $this->host = $config['host'];
+        $this->port = $config['port'];
+        $this->dbname = $config['dbname'];
+        $this->dbusername = $config['dbusername'];
+        $this->dbpassword = $config['dbpassword'];
+
+        // Datenbankverbindung herstellen
+        try {
+            PdoConnect::$connection = new PDO("mysql:host=$this->host;port=$this->port;dbname=$this->dbname", $this->dbusername, $this->dbpassword);
+            PdoConnect::$connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch(PDOException $e) {
+            die('Connection failed: ' . $e->getMessage());
+        }
+
+    }
+
+}
