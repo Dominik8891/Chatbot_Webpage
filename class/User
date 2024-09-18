@@ -200,12 +200,12 @@ class User
         {
             die("Fehler: keine User Info vorhanden!");
         }
-        $temp_array = [];
-        array_push($temp_array, $this->status);
-        array_push($temp_array, $this->usertype);
-        array_push($temp_array, $this->username);
-        array_push($temp_array, $this->email);
-        return $temp_array;
+        $tmp_array = [];
+        array_push($tmp_array, $this->status);
+        array_push($tmp_array, $this->usertype);
+        array_push($tmp_array, $this->username);
+        array_push($tmp_array, $this->email);
+        return $tmp_array;
     }
 
     public function getAll()

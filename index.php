@@ -4,6 +4,7 @@ include 'class/User';
 include 'assets/inc/system.php';
 include 'controller/login_system.php';
 include 'controller/signup_system.php';
+include 'controller/user_system.php';
 
 $pdo_instance = new PdoConnect();
 
