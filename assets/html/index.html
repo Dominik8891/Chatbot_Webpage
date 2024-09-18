@@ -4,36 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Adminpanel Chatbot für Umschüler</title>
+    <link rel="stylesheet" href="assets/css/admin.css">
 </head>
 <body>
     <script>
-		
-        function del( in_url )
-        {
-            if( window.confirm("Wollen Sie den Datensatz wirklich löschen?") == true ) 
-            {
+        function del(in_url) {
+            if (window.confirm("Wollen Sie den Datensatz wirklich löschen?")) {
                 window.location.href = in_url;
-            }
-            else
-            {
-                alert( "  lösche abgebrochen "  );
+            } else {
+                alert("Löschen abgebrochen");
             }
         }
-    
     </script>
 
-    <nav>
-        Adminpanel <br>
-        ###REGISTER###
-        
-        ###LOGOUT###
-    </nav>
+    <div id="admin-panel">
+        <nav>
+            <h3>Adminpanel</h3>
+            <a href="#">###REGISTER###</a> | <a href="#">###LOGOUT###</a>
+        </nav>
 
-    <div id="content" style="border: 2px solid #ccc; padding: 8px;">
-    
-        ###CONTENT###
-
+            ###CONTENT###
     </div>
-
 </body>
 </html>

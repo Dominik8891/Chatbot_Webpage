@@ -9,7 +9,7 @@ include 'controller/user_system.php';
 $pdo_instance = new PdoConnect();
 
 session_start();
-print_r($GLOBALS);
+//print_r($GLOBALS);
 if (g('act') != null)
 {
     $func_name = "act_". g('act');
