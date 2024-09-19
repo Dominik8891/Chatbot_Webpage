@@ -1,0 +1,159 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    width: 100%;
+}
+
+h2 {
+    margin-top: 0;
+    text-align: center;
+    color: #333;
+}
+
+#chat-history {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+    height: 500px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.message {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    max-width: 75%;
+    position: relative;
+}
+
+.message.user {
+    background-color: #e1f5fe;
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.message.user .header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.message.user .header strong {
+    margin-right: 10px;
+}
+
+.message.user .content {
+    display: inline-block;
+    text-align: right;
+}
+
+.message.user .time {
+    text-align: right;
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 5px;
+}
+
+.message.bot {
+    background-color: #dcedc8;
+    text-align: left;
+    margin-right: auto;
+}
+
+.message.bot .content {
+    display: inline-block;
+    text-align: left;
+}
+
+.message.bot .time {
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 5px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+textarea {
+    resize: none;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+input[type="submit"] {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+header h3 {
+    margin: 0;
+    color: #007bff;
+}
+
+.login-form, .logout-form {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.login-form input[type="text"] {
+    padding: 10px;
+    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+}
+
+.login-form input[type="submit"], .logout-form input[type="submit"] {
+    background-color: #007bff;
+    color: #ffffff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.login-form input[type="submit"]:hover, .logout-form input[type="submit"]:hover {
+    background-color: #0056b3;
+}

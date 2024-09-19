@@ -3,6 +3,7 @@
 #################################################################################################### 
 ################################## signup backend ################################################## 
 
+
 function act_signup()
 {
     if(g('username') != null)
@@ -23,23 +24,23 @@ function act_signup()
             $user->set_pwd(md5(g('pwd')));
             $user->save();
     }
-    home();
+    act_goto_chat();
 }
 
-function act_signup_page()
+function act_goto_signup()
 {
     if(isset($_SESSION['user_id']))
     {
-        home();
+        act_goto_chat();
     }
     $out  = "";
     if(g('error') != null)
     {
         $out = check_signup_error(g('error'));
     }
-    $html = file_get_contents("assets/html/signup.html");
+    $html = file_get_contents("assets/html/frontend/signup.html");
     $out = str_replace("###MESSAGE###", $out, $html);
-    output($out);
+    output_fe($out);
 }
 
 function check_signup_error($in_error)

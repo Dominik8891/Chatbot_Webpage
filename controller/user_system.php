@@ -93,7 +93,16 @@ function act_delete_user()
 
 function check_if_authorized()
 {
-    if(!isset($_SESSION['user_id']) || isset($_SESSION['user_role']) && $_SESSION['user_role'] == "Umschüler")
+    if(!isset($_SESSION['user_id']))
+    {
+        home();
+    }
+    if(!isset($_SESSION['user_role']))
+    {
+        $user = new User($_SESSION['user_id']);
+        $_SESSION['user_role'] = $user->get_usertype();
+    }
+    if($_SESSION['user_role'] == "Umschüler")
     {
         home();
     }

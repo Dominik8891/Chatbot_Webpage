@@ -1,5 +1,7 @@
 <?php
 
+################################################  ADMIN BEREICH #####################################################
+
 function output( $in_content )
 {
 	## laden der index.html die die Grundstruktur unserer Seite darstellt
@@ -33,7 +35,7 @@ function output( $in_content )
 	die( $out ); ## ENDE DES PHP !!!! 
 }
 
-################################################  ADMIN BEREICH #####################################################
+
 
 function act_admin()
 {
@@ -41,12 +43,6 @@ function act_admin()
 }
 
 ################################################  ADMIN BEREICH #####################################################
-
-function home()
-{
-    //act_start();
-	act_admin();
-}
 
 function g( $assoc_index )
 {
@@ -58,9 +54,39 @@ function g( $assoc_index )
 	return $_REQUEST[$assoc_index];
 }
 
+################################################  USER BEREICH  #####################################################  
+
+function output_fe( $in_content )
+{
+	## laden der index.html die die Grundstruktur unserer Seite darstellt
+	$html   = file_get_contents("assets/html/frontend/index.html"); 
+	$logout = "";
+	$out    = $in_content;	
+
+	if(isset($_SESSION['user_id']))
+	{
+		$logout = file_get_contents("assets/html/frontend/logout.html");
+		$user = new User($_SESSION['user_id']);
+		$logout = str_replace("###USERNAME###", $user->get_username(), $logout);
+	}
+
+	$logout = str_replace("###LOGOUT###"  , $logout , $html);
+    $out 	= str_replace("###CONTENT###" , $out 	, $logout);
+		
+    ## den HTML code ausgeben und das PHP beenden
+	die( $out ); ## ENDE DES PHP !!!! 
+}
+
+
+function home()
+{
+    act_start();
+	//act_admin();
+}
+
 function act_start()
 {
-    $html = file_get_contents("assets/html/home.html");
+    $html = file_get_contents("assets/html/frontend/home.html");
     
-    output($html);
+    output_fe($html);
 }
