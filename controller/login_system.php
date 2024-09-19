@@ -79,3 +79,4 @@ function act_logout_fe()
     session_destroy();
     home();
 }
+

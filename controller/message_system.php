@@ -1,12 +1,11 @@
 <?php
 
-function act_login_message()
+function act_get_name_for_greeting()
 {
     if (isset($_POST['login'])) {
         $user = new User($_SESSION['user_id']);
         $response = [
-            'username' => $user->get_username(),
-            'time' => date("H:i")
+            'username' => $user->get_username()
         ];
         echo json_encode($response);
     }
@@ -32,7 +31,7 @@ function act_process_message()
         ));
         file_put_contents($history_file, $history_json);
     
-        $command = 'python main1.py ' . base64_encode(json_encode($json_data));
+        $command = 'python python/main1.py ' . base64_encode(json_encode($json_data));
         $output = shell_exec(escapeshellcmd($command));
     
         $response = json_decode($output);
@@ -50,9 +49,6 @@ function act_process_message()
                 'time' => $history_date
             );
         }
-        
-        $ai_command = json_decode($output);
-        shell_exec(escapeshellcmd($ai_command));
 
         $history_json = json_encode(array(
             'chat_history' => $_SESSION['chat_history']
@@ -103,4 +99,33 @@ function act_goto_chat()
         output_fe($out);
     }
     home();
+}
+
+function send_greeting($in_username)
+{
+    $command = 'python python/main1.py ' . base64_encode($in_username);
+    $output = shell_exec(escapeshellcmd($command));
+
+    $response = json_decode($output);
+    $history_date = date("d.m.Y H:i");
+
+    $_SESSION['chat_history'][] = array(
+        'role' => 'user',
+        'content' => htmlspecialchars($_POST['message']),
+        'time' => $history_date
+    );
+    if (isset($response)) {
+        $_SESSION['chat_history'][] = array(
+            'role' => 'assistant',
+            'content' => htmlspecialchars($response),
+            'time' => $history_date
+        );
+    }
+
+    echo json_encode(array(
+        'user_message' => htmlspecialchars($_POST['message']),
+        'bot_message' => htmlspecialchars($response),
+        'time' => $history_date,
+        'now' => date('m.d.Y')
+    ));
 }
