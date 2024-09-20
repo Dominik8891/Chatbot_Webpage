@@ -1,0 +1,183 @@
+<?php
+
+class ChatLog
+{
+    private $id;
+    private $user_id;
+    private $msg;
+    private $msg_type;
+    private $timestamp;
+    private $deleted;
+
+    public function __construct($in_log_id = 0)
+    {
+        if($in_log_id > 0)
+        {
+            $query = "SELECT * 
+                      FROM chatlog
+                      WHERE log_id = :log_id;";
+            $stmt  = PdoConnect::$connection->prepare($query);
+            $stmt  ->bindParam(':log_id', $in_log_id);
+            $stmt  ->execute();
+
+            $result = $stmt->fetchAll();
+            if(count($result) == 1)
+            {
+                $this->id        = $result[0]['log_id'];
+                $this->user_id   = $result[0]['user_id'];
+                $this->msg       = $result[0]['msg'];
+                $this->msg_type  = $result[0]['msg_type'];
+                $this->timestamp = $result[0]['timestamp'];
+                $this->deleted   = $result[0]['deleted'];
+            }
+            elseif(count($stmt->fetchAll()) >= 2)
+            {
+                die("Fehler: Mehr als einen Datensatz gefunden!");
+            }
+            else
+            {
+                die("Fehler: Keinen Datensatz trotz ID gefunden!");
+            }
+        }
+        else
+        {
+            //neuen Nachricht anlegen
+            $this->id = 0;
+            $this->deleted = 0;
+        }
+    }
+
+    private function create()
+    {
+        if($this->id > 0)
+        {
+            echo "Fehler: Create mit ID > 0 versucht!";
+            return; 
+        }
+        $query = "INSERT INTO chatlog ( user_id,  msg,  msg_type)
+                                VALUES(:user_id, :msg, :msg_type);";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(':user_id', $this->user_id);
+        $stmt  ->bindParam(':msg', $this->msg);
+        $stmt  ->bindParam(':msg_type', $this->msg_type);
+
+        $stmt  ->execute();
+    }
+
+    private function update()
+    {
+        if($this->id < 1)
+        {
+            echo "Fehler: Update mit ID 0 versucht!";
+            return;
+        }
+        $query = "UPDATE chatlog SET deleted = :deleted;";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(':deleted', $this->deleted);
+        $stmt  ->execute();
+    }
+
+    public function save()
+    {
+        if($this->id > 0)
+        {
+            $this->update();
+        }
+        else
+        {
+            $this->create();
+        }
+    }
+
+    public function del_it()
+    {
+        if($this->id < 1)
+        {
+            echo "Fehler: Delete mit ID = 0 versucht!";
+            return;
+        }
+        $this->deleted = 1;
+
+        $this->update();
+    }
+
+    public function get_history_as_array($in_limit = 5)
+    {
+        $query = "WITH last_user_msg AS (
+                    SELECT *
+                    FROM chatlog
+                    WHERE msg_type = 'user' AND deleted = 0
+                    ORDER BY timestamp DESC
+                    LIMIT :set_limit
+                  ),
+                  first_user_timestamp AS (
+                    SELECT MIN(timestamp) AS min_user_timestamp
+                    FROM last_user_msg
+                  )
+                  
+                  SELECT *
+                  FROM chatlog
+                  WHERE msg_type = 'bot'
+                  AND timestamp >= (SELECT min_user_timestamp FROM first_user_timestamp)
+                  
+                  UNION ALL
+                  
+                  SELECT * 
+                  FROM last_user_msg
+                  WHERE deleted = 0
+                  ORDER BY timestamb ASC;";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(':set_limit', $in_limit);
+        $stmt  ->execute();
+
+        $result = $stmt->fetchAll();
+        if($result != null)
+        {
+            $tmp_array = [];
+            foreach($result[0] as $row)
+            {
+                $tmp_arr = [];
+                array_push($tmp_arr, $row['log_id']);
+                array_push($tmp_arr, $row['msg_type']);
+                array_push($tmp_arr, $row['msg']);
+                array_push($tmp_array, $tmp_arr);
+            }
+            return $tmp_array;
+        }
+        else
+        {
+            echo "Fehler!!!!!";
+            return;
+        }
+    }
+
+    public function set_user_id($in_user_id)
+    {
+        $this->user_id = $in_user_id;
+    }
+
+    public function set_msg($in_msg)
+    {
+        $this->msg = $in_msg;
+    }
+
+    public function set_msg_type($in_msg_type)
+    {
+        $this->msg_type = $in_msg_type;
+    }
+
+    public function get_msg()
+    {
+        return $this->msg;
+    }
+
+    public function get_msg_type()
+    {
+        return $this->msg_type;
+    }
+
+    public function get_timestamp()
+    {
+        return $this->timestamp;
+    }
+}

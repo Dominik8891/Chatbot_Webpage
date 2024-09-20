@@ -14,46 +14,24 @@ function act_get_name_for_greeting()
 function act_process_message()
 {
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['message'])) {
-        $history_filename = 'history' . '.txt';
-        $folder = 'userdata/user' . $_SESSION['user_id'] . '/';
-        if (!is_dir($folder)) {
-            mkdir($folder, 0777, true);
-        }
-        $history_file = $folder . $history_filename;
     
         $json_data = array(
             'message' => $_POST['message'],
             'user_id' => $_SESSION['user_id']
         );
 
-        $history_json = json_encode(array(
-            'chat_history' => $_SESSION['chat_history']
-        ));
-        file_put_contents($history_file, $history_json);
-    
-        $command = 'python python/main1.py ' . base64_encode(json_encode($json_data));
+        $original_dir = getcwd();
+        chdir('python');
+        $command = 'python main.py ' . base64_encode(json_encode($json_data));
         $output = shell_exec(escapeshellcmd($command));
-    
+        chdir($original_dir);
+
         $response = json_decode($output);
         $history_date = date("d.m.Y H:i");
     
-        $_SESSION['chat_history'][] = array(
-            'role' => 'user',
-            'content' => htmlspecialchars($_POST['message']),
-            'time' => $history_date
-        );
-        if (isset($response)) {
-            $_SESSION['chat_history'][] = array(
-                'role' => 'assistant',
-                'content' => htmlspecialchars($response),
-                'time' => $history_date
-            );
-        }
-
-        $history_json = json_encode(array(
-            'chat_history' => $_SESSION['chat_history']
-        ));
-        file_put_contents($history_file, $history_json);
+        write_message_in_db($_SESSION['user_id'], $_POST['message'], 'user');
+        $_SESSION['bla'] = 'bla';
+        write_message_in_db($_SESSION['user_id'], $response, 'bot');
 
         echo json_encode(array(
             'user_message' => htmlspecialchars($_POST['message']),
@@ -103,29 +81,27 @@ function act_goto_chat()
 
 function send_greeting($in_username)
 {
-    $command = 'python python/main1.py ' . base64_encode($in_username);
+    $command = 'python python/main1.py ' . base64_encode(json_encode($in_username));
     $output = shell_exec(escapeshellcmd($command));
 
     $response = json_decode($output);
     $history_date = date("d.m.Y H:i");
 
-    $_SESSION['chat_history'][] = array(
-        'role' => 'user',
-        'content' => htmlspecialchars($_POST['message']),
-        'time' => $history_date
-    );
-    if (isset($response)) {
-        $_SESSION['chat_history'][] = array(
-            'role' => 'assistant',
-            'content' => htmlspecialchars($response),
-            'time' => $history_date
-        );
-    }
+    write_message_in_db($_SESSION['user_id'], $response, 'bot');
 
     echo json_encode(array(
-        'user_message' => htmlspecialchars($_POST['message']),
         'bot_message' => htmlspecialchars($response),
         'time' => $history_date,
         'now' => date('m.d.Y')
     ));
+}
+
+function write_message_in_db($in_user_id, $in_msg, $in_msg_type)
+{
+    $chat = new ChatLog();
+    $chat->set_user_id($_SESSION['user_id']);
+    //$chat->set_user_id($in_user_id);
+    $chat->set_msg($in_msg);
+    $chat->set_msg_type($in_msg_type);
+    $chat->save();
 }

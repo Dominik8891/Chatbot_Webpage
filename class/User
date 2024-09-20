@@ -33,14 +33,14 @@ class User
                 $this->pwd      = $result[0]['password'];
                 $this->deleted  = $result[0]['deleted'];
             }
-            /*elseif(count($stmt->fetchAll()) >= 2)
+            elseif(count($stmt->fetchAll()) >= 2)
             {
                 die("Fehler: Mehr als einen Datensatz gefunden!");
             }
             else
             {
                 die("Fehler: Keinen Datensatz trotz ID gefunden!");
-            }*/
+            }
         }
         else
         {

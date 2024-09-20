@@ -58,3 +58,7 @@ function check_signup_error($in_error)
         return "Bitte ein anderes Password wählen";
     }
 }
+
+/*
+error messages in php oder js einbauen für falsche
+*/

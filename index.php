@@ -1,6 +1,7 @@
 <?php
 include	'class/PdoConnect';
 include 'class/User';
+include 'class/ChatLog';
 include 'assets/inc/system.php';
 include 'controller/login_system.php';
 include 'controller/signup_system.php';
