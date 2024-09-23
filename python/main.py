@@ -3,7 +3,7 @@ import sys
 import json
 import requests
 import base64
-import db_connect
+from db_connect import get_history, insert_msg
 
 model = "llama3.1"
 # Laden der Umgebungsvariablen aus der .env Datei
@@ -25,10 +25,11 @@ def handle_message(data):
     # Extrahiere Nachricht und Session-ID aus den JSON-Daten
     user_input = data.get('message', '')
     user_id = data.get('user_id', '')
-    history_data = db_connect.get_history(user_id)
-    #history_file = "userdata\\user" + str(user_id) + "\\history.txt" 
+
+    history_data = get_history(user_id)
     
     #context.extend(history_data)
+    
     try:
         messages= context + [{"role": "user", "content": user_input}]
         r = requests.post(
@@ -52,10 +53,12 @@ def handle_message(data):
             if body.get("done", False):
                 message["content"] = output
                
-                
+       
+        insert_msg(user_id,message['content'])       
         # Extrahiere die Antwort des Bots aus der API-Antwort
-        print(json.dumps(message['content'], indent=2, ensure_ascii=True))
+        #print(json.dumps(message['content'], indent=2, ensure_ascii=True))
         with open("test.txt", "w", encoding="utf-8") as f:
+            #f.write(msg)
             f.write(message['content'])
 
     except requests.exceptions.RequestException as e:

@@ -32,14 +32,16 @@ def create_connection():
     return connection
 
 
-def execute_query(connection, query):
+def execute_query(connection, query, params = None):
     cursor = connection.cursor()
     try:
-        cursor.execute(query)
+        cursor.execute(query, params)
         connection.commit() # Notwendig für INSER, UPDATE oder DELETE
         print("Abfrage erfolgreich ausgeführt")
     except Error as e:
         print(f"Fehler bei der Abfrage: {e}")
+    finally:
+        cursor.close()
 
 
 def fetch_query_results(connection, query, params=None):
@@ -51,6 +53,8 @@ def fetch_query_results(connection, query, params=None):
         return result
     except Error as e:
         print(f"Fehler beim Abrufen der Daten: {e}")
+    finally:
+        cursor.close()
 
 
 def close_connection(connection):
@@ -65,9 +69,9 @@ def get_history(id, limit=5):
     query = """WITH last_user_msg AS (
                     SELECT *
                     FROM chatlog
-                    WHERE msg_type = 'user' AND user_id = :id AND deleted = 0
+                    WHERE msg_type = 'user' AND user_id = %s AND deleted = 0
                     ORDER BY timestamp DESC
-                    LIMIT :set_limit
+                    LIMIT %s
                   ),
                   first_user_timestamp AS (
                     SELECT MIN(timestamp) AS min_user_timestamp
@@ -83,13 +87,24 @@ def get_history(id, limit=5):
                   
                   SELECT * 
                   FROM last_user_msg
-                  WHERE user_id = :id 
+                  WHERE user_id = %s 
                   AND deleted = 0
                   AND is_greeting = 0
                   ORDER BY timestamb ASC;"""
     
-    params = {'id': id, 'set_limit': limit}
+    params = {id, limit, id}
     results = fetch_query_results(connection, query, params)#
     json_output = json.dumps(results, default=str)
     close_connection(connection)
     return json_output
+
+
+def insert_msg(id, msg):
+    connection = create_connection()
+    query = """INSERT INTO chatlog (user_id, msg,  msg_type)
+                             VALUE (%s,      %s,  'bot');
+    """
+    params = {id, msg}
+    execute_query(connection, query, params)
+
+    
