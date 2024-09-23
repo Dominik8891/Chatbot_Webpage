@@ -7,8 +7,9 @@ function act_login()
     if( g('username') != null)
     {
         $user = new User();
-        $pwd = md5(g('pwd'));
-        $user_id = $user->login(g('username'), $pwd);
+        $username = htmlspecialchars(g('username'));
+        $pwd = htmlspecialchars(g('pwd'));
+        $user_id = $user->login($username, pwd_decrypt($pwd));
 
         if($user_id > 0)
         {
@@ -53,22 +54,41 @@ function act_goto_login()
 ################################################################## 
 function act_login_fe()
 {
-    if(g('username') != null && g('pwd') != null)
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['pwd']))
     {
-        $user = new User();
-        $pwd = md5(g('pwd'));
-        $user_id = $user->login(g('username'), $pwd);
-
-        if($user_id > 0)
+        if(g('username') != null && g('pwd') != null)
         {
-            $_SESSION['user_id'] = $user->get_id();
+            $user = new User();
+            $username = htmlspecialchars(g('username'));
+            $pwd = htmlspecialchars(g('pwd'));
+            $user_id = $user->login($username, pwd_decrypt($pwd));
+    
+            if($user_id > 0)
+            {
+                $_SESSION['user_id'] = $user->get_id();
+            }
         }
-    }
-    if(!isset($_SESSION['user_id']))
-    {
-        $out = file_get_contents("assets/html/frontend/login.html");
-        output_fe($out);
-    }
+        if(!isset($_SESSION['user_id']))
+        {
+            $out = file_get_contents("assets/html/frontend/login.html");
+            output_fe($out);
+        }
+        if(!isset($_SESSION['chat_history']))
+        {
+            $history = new ChatLog();
+            $chat_history = $history->get_history_as_array();
+            if(!isset($_SESSION['chat_history']))
+            foreach($chat_history as $row)
+            {
+                $_SESSION['chat_history'][] = array(
+                    'role' => $row[1],
+                    'content' => $row[2],
+                    'timestamp' => $row[3]
+                );
+            }
+            send_greeting(g('username'));
+        } 
+    } 
     act_goto_chat();
 }
 
@@ -78,5 +98,14 @@ function act_logout_fe()
     unset($_SESSION['user_role']);
     session_destroy();
     home();
+}
+
+function pwd_decrypt($in_pwd)
+{
+    $config = include 'config/config.php';
+    $pepper = $config['pepper'];
+    $pwd = $in_pwd;
+    $pwd_peppered = hash_hmac("sha256", $pwd, $pepper);
+    return $pwd_peppered;
 }
 

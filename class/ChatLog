@@ -103,12 +103,13 @@ class ChatLog
 
     public function get_history_as_array($in_limit = 5)
     {
+        $in_limit = intval($in_limit);
         $query = "WITH last_user_msg AS (
                     SELECT *
                     FROM chatlog
                     WHERE msg_type = 'user' AND deleted = 0
                     ORDER BY timestamp DESC
-                    LIMIT :set_limit
+                    LIMIT $in_limit
                   ),
                   first_user_timestamp AS (
                     SELECT MIN(timestamp) AS min_user_timestamp
@@ -125,21 +126,21 @@ class ChatLog
                   SELECT * 
                   FROM last_user_msg
                   WHERE deleted = 0
-                  ORDER BY timestamb ASC;";
+                  ORDER BY timestamp ASC;";
         $stmt  = PdoConnect::$connection->prepare($query);
-        $stmt  ->bindParam(':set_limit', $in_limit);
         $stmt  ->execute();
 
         $result = $stmt->fetchAll();
         if($result != null)
         {
             $tmp_array = [];
-            foreach($result[0] as $row)
+            foreach($result as $row)
             {
                 $tmp_arr = [];
                 array_push($tmp_arr, $row['log_id']);
                 array_push($tmp_arr, $row['msg_type']);
                 array_push($tmp_arr, $row['msg']);
+                array_push($tmp_arr, $row['timestamp']);
                 array_push($tmp_array, $tmp_arr);
             }
             return $tmp_array;
@@ -148,6 +149,24 @@ class ChatLog
         {
             echo "Fehler!!!!!";
             return;
+        }
+    }
+
+    public function get_last_answer()
+    {
+        $query = "SELECT msg FROM chatlog WHERE user_id = :user_id AND msg_type = 'bot' ORDER BY timestamp DESC LIMIT 1;";
+        $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(':user_id', $this->user_id);
+        $stmt  ->execute();
+        
+        $result = $stmt->fetch();
+        if($result)
+        {
+            return $result['msg'];
+        }
+        else 
+        {
+            return "Fehler!!!";
         }
     }
 

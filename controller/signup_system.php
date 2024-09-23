@@ -8,20 +8,23 @@ function act_signup()
 {
     if(g('username') != null)
     {
+        $username = htmlspecialchars(g('username'));
+        $email = htmlspecialchars(g('email'));
+        $pwd = htmlspecialchars(g('pwd'));
         $user = new User();
-        if(!$user->check_if_username_exists(g('username')))
+        if(!$user->check_if_username_exists($username))
         {
             output("index.php?act=signup_page?error=username");
             die();
         }
-        if(!$user->check_if_email_exists(g('email')))
+        if(!$user->check_if_email_exists($email))
         {
             output("index.php?act=signup_page?error=email");
             die();
         }
-            $user->set_username(g('username'));
-            $user->set_email(g('email'));
-            $user->set_pwd(md5(g('pwd')));
+            $user->set_username($username);
+            $user->set_email($email);
+            $user->set_pwd(pwd_encrypt($pwd));
             $user->save();
     }
     act_goto_chat();
@@ -43,6 +46,32 @@ function act_goto_signup()
     output_fe($out);
 }
 
+function act_signup_fe()
+{
+    if(g('username') != null)
+    {
+        $username = htmlspecialchars(g('username'));
+        $email = htmlspecialchars(g('email'));
+        $pwd = htmlspecialchars(g('pwd'));
+        $user = new User();
+        if(!$user->check_if_username_exists($username))
+        {
+            output("index.php?act=signup_page?error=username");
+            die();
+        }
+        if(!$user->check_if_email_exists($email))
+        {
+            output("index.php?act=signup_page?error=email");
+            die();
+        }
+            $user->set_username($username);
+            $user->set_email($email);
+            $user->set_pwd(pwd_encrypt($pwd));
+            $user->save();
+    }
+    act_goto_chat();
+}
+
 function check_signup_error($in_error)
 {
     if($in_error == "username")
@@ -62,3 +91,13 @@ function check_signup_error($in_error)
 /*
 error messages in php oder js einbauen für falsche
 */
+
+function pwd_encrypt($in_pwd)
+{
+    $config = include 'config/config.php';
+    $pepper = $config['pepper'];
+    $pwd = $in_pwd;
+    $pwd_peppered = hash_hmac("sha256", $pwd, $pepper);
+    $pwd_hashed = password_hash($pwd_peppered, PASSWORD_ARGON2I);
+    return $pwd_hashed;
+}

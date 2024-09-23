@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
 
-dotenv_path = os.path.join(os.path.dirname(__file__), '..', 'config', '.env')
+dotenv_path = os.path.join(os.path.dirname(__file__), '..',  'config', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
 host = os.getenv('HOST')
@@ -89,22 +89,30 @@ def get_history(id, limit=5):
                   FROM last_user_msg
                   WHERE user_id = %s 
                   AND deleted = 0
-                  AND is_greeting = 0
-                  ORDER BY timestamb ASC;"""
+                  ORDER BY timestamp ASC;"""
     
-    params = {id, limit, id}
-    results = fetch_query_results(connection, query, params)#
+    params = (id, limit, id)  # Verwende ein Tuple hier
+    results = fetch_query_results(connection, query, params)
     json_output = json.dumps(results, default=str)
     close_connection(connection)
     return json_output
 
-
-def insert_msg(id, msg):
+def get_msg(id):
     connection = create_connection()
-    query = """INSERT INTO chatlog (user_id, msg,  msg_type)
-                             VALUE (%s,      %s,  'bot');
+    query = """SELECT msg FROM chatlog WHERE user_id = %s ORDER BY timestamp DESC LIMIT 1
+            """
+    params = (id,)
+    results = fetch_query_results(connection, query, params)
+    #json_output = json.dumps(results, default=str)
+    close_connection(connection)
+    return results[0][0]
+
+def insert_msg(id, msg, msg_type):
+    connection = create_connection()
+    query = """INSERT INTO chatlog (user_id, msg, msg_type)
+                            VALUES (%s, %s, %s);
     """
-    params = {id, msg}
+    params = (id, msg, msg_type)  # Verwende ein Tuple hier
     execute_query(connection, query, params)
 
     

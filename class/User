@@ -125,17 +125,24 @@ class User
         $query = "SELECT u.*, ut.name FROM user u
                             JOIN usertype ut ON u.ut_id = ut.ut_id
                             WHERE username = :username AND
-                                  password = :password AND
                                   u.deleted  = 0;";
         $stmt = PdoConnect::$connection->prepare($query);
         $stmt ->bindParam(":username", $in_username);
-        $stmt ->bindParam(":password", $in_pwd);
 
         $stmt ->execute();
 
         $result = $stmt->fetchAll();
-        if(count($result) == 1)
+        
+        if(count($result) != 1)
         {
+            return false;
+        }
+        if(password_verify($in_pwd, $result[0]['password']))
+        {
+            $update_query = "UPDATE user SET last_login = CURRENT_TIMESTAMP WHERE user_id = :id;";
+            $update_stmt  = PdoConnect::$connection->prepare($update_query);
+            $update_stmt  ->bindParam(':id', $this->id);
+            $update_stmt  ->execute();
             /*
             #endregion#endregion
             #endregion#endregion
@@ -156,8 +163,9 @@ class User
         }
         else
         {
-            return 0;
-        }
+            return false;
+        }    
+        
     }
 
     public function check_if_username_exists()

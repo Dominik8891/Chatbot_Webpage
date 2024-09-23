@@ -51,3 +51,18 @@ ToDo
 - im footer auf ollama verweisen wegen nutzungsrechten
 - im adminpanel etwas erstellen womit man das llm trainieren kann und das neue llm auch gleich verwenden kann?
 - evtl. emailserver anbinden für email verifikation und zurücksetzen des passworts
+
+
+
+
+
+
+
+
+
+
+
+Probleme bisher
+
+- aufrufen des python scripts innerhalb von php macht probleme 
+- python neue sprache für mich und muss mir einiges neu anschauen
