@@ -1,4 +1,0 @@
-DEBUG:__main__:{'message': 'test', 'user_id': '1'}
-DEBUG:urllib3.connectionpool:Starting new HTTP connection (1): 127.0.0.1:11434
-DEBUG:urllib3.connectionpool:http://127.0.0.1:11434 "POST /api/chat HTTP/1.1" 200 None
-DEBUG:__main__:{'message': 'test', 'user_id': '1'}
