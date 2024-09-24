@@ -107,7 +107,7 @@ class ChatLog
         $query = "WITH last_user_msg AS (
                     SELECT *
                     FROM chatlog
-                    WHERE msg_type = 'user' AND deleted = 0
+                    WHERE msg_type = 'user' AND user_id = :user_id AND deleted = 0
                     ORDER BY timestamp DESC
                     LIMIT $in_limit
                   ),
@@ -125,9 +125,10 @@ class ChatLog
                   
                   SELECT * 
                   FROM last_user_msg
-                  WHERE deleted = 0
+                  WHERE user_id = :user_id AND deleted = 0
                   ORDER BY timestamp ASC;";
         $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(':user_id', $this->user_id);
         $stmt  ->execute();
 
         $result = $stmt->fetchAll();

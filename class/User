@@ -125,7 +125,8 @@ class User
         $query = "SELECT u.*, ut.name FROM user u
                             JOIN usertype ut ON u.ut_id = ut.ut_id
                             WHERE username = :username AND
-                                  u.deleted  = 0;";
+                                  u.deleted  = 0 AND
+                                  u.status = 1;";
         $stmt = PdoConnect::$connection->prepare($query);
         $stmt ->bindParam(":username", $in_username);
 
@@ -137,68 +138,61 @@ class User
         {
             return false;
         }
-        if(password_verify($in_pwd, $result[0]['password']))
+
+        $stored_hashed_pwd = $result[0]['password'];
+
+        $config = include 'config/config.php';
+        $pepper = $config['pepper'];
+        $pwd_peppered = hash_hmac("sha256", $in_pwd, $pepper);
+
+        if(password_verify($pwd_peppered, $stored_hashed_pwd))
         {
             $update_query = "UPDATE user SET last_login = CURRENT_TIMESTAMP WHERE user_id = :id;";
             $update_stmt  = PdoConnect::$connection->prepare($update_query);
-            $update_stmt  ->bindParam(':id', $this->id);
+            $update_stmt  ->bindParam(':id', $result[0]['user_id']);
             $update_stmt  ->execute();
-            /*
-            #endregion#endregion
-            #endregion#endregion
-            #endregion#endregion
-            #endregion#endregion
-
-            hier noch nach arbeiten für rolle also ob normaler nutzer oder admin oder dozent!!!!!
-
-            #endregion
-            #endregion
-            #endregion
-            #endregion
-            #endregion
-            */
+        
             $this->id = $result[0]['user_id'];
             $this->usertype = $result[0]['name'];
             return $this->id;
         }
         else
         {
+            echo "login fehlgeschlagen";
             return false;
         }    
         
     }
 
-    public function check_if_username_exists()
+    public function check_if_username_exists($in_username)
     {
         $query = "SELECT * FROM user WHERE username = :username";
         $stmt  = PdoConnect::$connection->prepare($query);
-        $stmt  ->bindParam(":username", $this->username);
+        $stmt  ->bindParam(":username", $in_username);
 
-        $result = $stmt->execute();
+        $stmt->execute();
+        $result = $stmt->fetch();
 
-        if($result != null)
+        if($result)
         {
             return true;
         }
-        // fragen ob man das so schreiben kann oder ob das in ein else muss
-        // weil return true bricht theoretisch die funktion ab bevor es bei return false ankommt
         return false;
     }
 
-    public function check_if_email_exists()
+    public function check_if_email_exists($in_email)
     {
         $query = "SELECT * FROM user WHERE email = :email";
         $stmt  = PdoConnect::$connection->prepare($query);
-        $stmt  ->bindParam(":email", $this->email);
+        $stmt  ->bindParam(":email", $$in_email);
 
-        $result = $stmt->execute();
+        $stmt->execute();
+        $result = $stmt->fetch();
 
-        if($result != null)
+        if($result)
         {
             return true;
         }
-        // fragen ob man das so schreiben kann oder ob das in ein else muss
-        // weil return true bricht theoretisch die funktion ab bevor es bei return false ankommt
         return false;
     }
 

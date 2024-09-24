@@ -54,15 +54,15 @@ function act_goto_login()
 ################################################################## 
 function act_login_fe()
 {
-    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['pwd']))
+    //if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['pwd']))
     {
         if(g('username') != null && g('pwd') != null)
         {
             $user = new User();
             $username = htmlspecialchars(g('username'));
             $pwd = htmlspecialchars(g('pwd'));
-            $user_id = $user->login($username, pwd_decrypt($pwd));
-    
+            $user_id = $user->login($username, $pwd);
+
             if($user_id > 0)
             {
                 $_SESSION['user_id'] = $user->get_id();
@@ -76,6 +76,7 @@ function act_login_fe()
         if(!isset($_SESSION['chat_history']))
         {
             $history = new ChatLog();
+            $history->set_user_id($_SESSION['user_id']);
             $chat_history = $history->get_history_as_array();
             if(!isset($_SESSION['chat_history']))
             foreach($chat_history as $row)
