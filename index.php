@@ -11,6 +11,7 @@ include 'controller/message_system.php';
 $pdo_instance = new PdoConnect();
 
 session_start();
+set_time_limit(300);
 //print_r($GLOBALS);
 if (g('act') != null)
 {

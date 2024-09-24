@@ -4,6 +4,10 @@ import json
 import requests
 import base64
 from db_connect import get_history, insert_msg, get_msg
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='example.log', encoding='utf-8', level=logging.DEBUG)
 
 model = "llama3.1"
 # Laden der Umgebungsvariablen aus der .env Datei
@@ -15,14 +19,20 @@ def handle_message(data):
     content = f"""        
     """
     context = [{"role": "system", "content": content}]
-    
+    logger.debug(data)
     # Extrahiere Nachricht und Session-ID aus den JSON-Daten
     user_input = data.get('message', '')
     user_id = data.get('user_id', '')
     
+    #logger.debug(history_raw_data = get_history(user_id))
     history_data = get_history(user_id)
+    #logger.debug(history_raw_data)
+    #history_data = history_raw_data
+
+    #with open("history.txt", "w", encoding="utf-8") as f:
+        #f.write(history_data)
     
-    #context.extend(history_data)
+    context.extend(history_data)
     insert_msg(user_id, user_input, 'user')
     try:
         messages= context + [{"role": "user", "content": user_input}]

@@ -240,6 +240,77 @@ h2 {
     margin: 0 auto;
 }
 
+/* Chat */
+#chat-history {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-bottom: 20px;
+    height: 500px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+.message {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    max-width: 75%;
+    position: relative;
+}
+
+.message.user {
+    background-color: #e1f5fe;
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.message.user .header {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.message.user .header strong {
+    margin-right: 10px;
+}
+
+.message.user .content {
+    display: inline-block;
+    text-align: right;
+}
+
+.message.user .time {
+    text-align: right;
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 5px;
+}
+
+.message.bot {
+    background-color: #dcedc8;
+    text-align: left;
+    margin-right: auto;
+}
+
+.message.bot .content {
+    display: inline-block;
+    text-align: left;
+}
+
+.message.bot .time {
+    font-size: 0.8em;
+    color: #555;
+    margin-top: 5px;
+}
+
+
+
+
+
 @media (max-width: 768px) {
     .container {
         width: 80%;

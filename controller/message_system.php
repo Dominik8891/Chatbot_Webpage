@@ -91,6 +91,7 @@ function act_goto_chat()
     if(isset($_SESSION['user_id']))
     {
         $out = show_chatbot();
+        $out  = str_replace("###LOGIN_SCRIPT###", "<script src='assets/js/scroll.js' defer></script>", $out );
         output_fe($out);
     }
     home();

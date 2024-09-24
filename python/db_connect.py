@@ -3,6 +3,11 @@ import json
 from dotenv import load_dotenv
 import mysql.connector
 from mysql.connector import Error
+from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(filename='db.log', encoding='utf-8', level=logging.DEBUG)
 
 dotenv_path = os.path.join(os.path.dirname(__file__), '..',  'config', '.env')
 load_dotenv(dotenv_path=dotenv_path)
@@ -78,24 +83,60 @@ def get_history(id, limit=5):
                     FROM last_user_msg
                   )
                   
-                  SELECT *
+                  SELECT msg_type, msg, timestamp
                   FROM chatlog
                   WHERE msg_type = 'bot'
                   AND timestamp >= (SELECT min_user_timestamp FROM first_user_timestamp)
                   
                   UNION ALL
                   
-                  SELECT * 
+                  SELECT msg_type, msg, timestamp
                   FROM last_user_msg
                   WHERE user_id = %s 
                   AND deleted = 0
-                  ORDER BY timestamp ASC;"""
+                  ORDER BY timestamp DESC;"""
     
     params = (id, limit, id)  # Verwende ein Tuple hier
     results = fetch_query_results(connection, query, params)
-    json_output = json.dumps(results, default=str)
+    #json_output = json.dumps(results, default=str)
     close_connection(connection)
-    return json_output
+    logger.debug(results)
+    #return json_output
+    try:
+        chat_list = []
+        logger.debug(chat_list)
+        for entry in results:
+            if(entry[0] == 'bot'):
+                role = 'assistant'
+            else:
+                role = entry[0]
+            if isinstance(entry[2], datetime):
+                timestamp = entry[2].strftime('%Y-%m-%d %H:%M:%S')
+            else:
+                timestamp = entry[2]
+            logger.debug(role)
+            logger.debug(timestamp)
+            chat_entry = {
+                "role": role,      # "user" oder "bot"
+                "content": entry[1],   # Die Nachricht
+                "time": timestamp       # Zeitstempel
+            }
+            logger.debug(chat_entry)
+            chat_list.append(chat_entry)
+            logger.debug(chat_list)
+        history_list = []
+        history_list_data = {"chat_history": chat_list}
+        history_list.append(history_list_data)
+        logger.info(history_list)
+        # Struktur des JSON-Outputs ändern
+        #data = {'chat_history':jslist}
+        #history_data = json.dumps(data, indent=4)
+        #logger.info(history_data)
+        return history_list
+    except Error as e:
+        data = "test"
+        return data
+
 
 def get_msg(id):
     connection = create_connection()

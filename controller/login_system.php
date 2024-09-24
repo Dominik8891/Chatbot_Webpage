@@ -90,7 +90,8 @@ function act_login_fe()
             send_greeting(g('username'));
         } 
     } 
-    act_goto_chat();
+    header("Location: index.php?act=goto_chat");
+    //act_goto_chat();
 }
 
 function act_logout_fe()
