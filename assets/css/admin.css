@@ -24,6 +24,29 @@ body {
     align-items: center;
 }
 
+nav {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+nav h3 {
+    margin-bottom: 10px;
+}
+
+.nav-links {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.nav-links a, .nav-links span {
+    font-size: 16px;
+    color: #007BFF;
+}
+
 /* Form Styles */
 form {
     background-color: #fff;
@@ -112,6 +135,31 @@ th {
 td {
     background-color: #f9f9f9;
 }
+
+/* Anpassungen für das Optionsfenster */
+select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    background-color: white;
+    transition: border-color 0.3s;
+    color: #333; /* Textfarbe anpassen */
+}
+
+select:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+/* Dropdown-Menü Optionen */
+option {
+    background-color: #fff; /* Hintergrundfarbe */
+    color: #333; /* Textfarbe */
+    padding: 10px;
+}
+
 
 /* Für mobile Geräte */
 @media (max-width: 768px) {

@@ -1,13 +1,15 @@
 <h3>User ###USER_INFO###</h3>
 
-<form action="/shop/index.php?act=manage_user" method="post" enctype="multipart/form-data">
+<form action="index.php?act=manage_user" method="post" enctype="multipart/form-data">
     <input type="hidden" name="id" value="###ID###" autocomplete="off">
 
-    <label>Status:</label>
-    <input type="number" name="status" value="###STATUS###" autocomplete="off">
+    ###STATUS###
 
     <label>Typ:</label>
-    <input type="number" name="role" value="###ROLE###" autocomplete="off">
+    <!--<input type="text" name="role" value="###ROLE###" autocomplete="off">-->
+    <select name="role" >
+        ###ROLE###					  
+    </select>
 
     <label>Username:</label>
     <input type="text" name="username" value="###USERNAME###" autocomplete="off">
@@ -16,7 +18,7 @@
     <input type="email" name="email" value="###EMAIL###" autocomplete="off">
 
     <label>Password:</label>
-    <input type="text" name="password" value="###PASSWORD###" autocomplete="off">
+    <input type="text" name="pwd" value="###PASSWORD###" autocomplete="off">
 
     <input type="submit" name="send" value="Speichern">
 </form>

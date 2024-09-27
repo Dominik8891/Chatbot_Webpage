@@ -11,24 +11,26 @@ function output( $in_content )
 	$out = str_replace( "###CONTENT###" , $in_content , $out );
 
 	$sign = "<a href='index.php?act=signup_page'>Sign Up</a>";
+	$user_txt = "";
 	
 	## default den LOGIN Link zeigen
-	$text = "<a href='index.php?act=login'>Login</a>";
+	$text = "<a href='index.php?act=login_page'>Login</a>";
 	
 	## wenn jemand angemeldet ist .. dann >>
-	if( isset( $_SESSION['user_id'] ) && $_SESSION['user_role'] != 'umschüler' && isset($_SESSION['user_role']))
+	if( isset( $_SESSION['user_id'] ) && isset($_SESSION['role_id']) && $_SESSION['role_id'] > 2)
 	{	
 		## den User aus Datenbank laden
 		$user = new User( $_SESSION['user_id'] );
 		
 		## den login-text mit einem logout text überschreiben
-		$text  = " Sie sind angemeldet als: ". $user->get_username() ." <br> ";		
-		$text .= " <a href='index.php?act=logout'>Logout</a>";
-		$sign = "<a href='index.php?act=list_user'>User</a>";
+		$user_txt  = " Sie sind angemeldet als: ". $user->get_username() ." <br> ";		
+		$text = " <a href='index.php?act=logout'>Logout</a>";
+		$sign = "<a href='index.php?act=list_user'>Benutzerliste</a>";
 	}
 	
 	## den LOGOUT Platzhalter mit dem vorher erzeugten Text ersetzten
 	$out = str_replace( "###LOGOUT###" , $text , $out );
+	$out = str_replace("###USER###", $user_txt, $out);
 	$out = str_replace("###REGISTER###", $sign, $out);
 		
     ## den HTML code ausgeben und das PHP beenden
@@ -37,9 +39,9 @@ function output( $in_content )
 
 
 
-function act_admin()
+function act_admin($in_msg = "Willkommen im Admin Panel")
 {
-    output('Hallo');
+    output($in_msg);
 }
 
 ################################################  ADMIN BEREICH #####################################################
@@ -52,6 +54,28 @@ function g( $assoc_index )
 	}
 	
 	return $_REQUEST[$assoc_index];
+}
+
+function gen_html_options( $in_data_array , $in_selected_id , $in_add_empty  )
+{	
+	$out_opt = "";
+	
+	if( $in_add_empty == true )
+	  {
+		$out_opt .= '<option value=0  >  -- KEINE --  </option>';
+	  }	
+	
+	foreach( $in_data_array as $key => $val )	
+	{		
+		$sel = "";
+		
+		if( $key  == $in_selected_id )
+			$sel = "selected";
+		
+		$out_opt    .= '<option value="'. $key .'"  '. $sel .' > '. $val .' </option>';
+	}	
+	
+	return $out_opt ;
 }
 
 ################################################  USER BEREICH  #####################################################  

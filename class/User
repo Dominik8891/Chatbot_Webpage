@@ -4,6 +4,7 @@ class User
 {
     private $id;
     private $status;
+    private $type_id;
     private $usertype;
     private $username;
     private $email;
@@ -14,7 +15,7 @@ class User
     {
         if($in_id > 0)
         {
-            $query = "SELECT u.*, ut.name 
+            $query = "SELECT u.*, ut.type_name 
                       FROM user u 
                       JOIN usertype ut ON u.ut_id = ut.ut_id 
                       WHERE user_id = :user_id;";
@@ -26,11 +27,12 @@ class User
             if(count($result) == 1)
             {
                 $this->id       = $result[0]['user_id'];
-                $this->status   = $result[0]['status'];
-                $this->usertype = $result[0]['name'];
+                $this->status   = $result[0]['user_status'];
+                $this->type_id  = $result[0]['ut_id'];
+                $this->usertype = $result[0]['type_name'];
                 $this->username = $result[0]['username'];
                 $this->email    = $result[0]['email'];
-                $this->pwd      = $result[0]['password'];
+                $this->pwd      = $result[0]['pwd'];
                 $this->deleted  = $result[0]['deleted'];
             }
             elseif(count($stmt->fetchAll()) >= 2)
@@ -50,6 +52,7 @@ class User
         }
     }
 
+    #private function create($in_type_id)
     private function create()
     {
         if($this->id > 0)
@@ -58,12 +61,13 @@ class User
             return;
         }
 
-        $query = "INSERT INTO user (ut_id,  username,  email,  password)
-                            VALUES (1,     :username, :email, :password);";
+        $query = "INSERT INTO user ( ut_id,  username,  email,  pwd)
+                            VALUES (:ut_id, :username, :email, :pwd);";
         $stmt  = PdoConnect::$connection->prepare($query);
+        $stmt  ->bindParam(":ut_id"   , $this->type_id);
         $stmt  ->bindParam(":username", $this->username);
         $stmt  ->bindParam(":email"   , $this->email);
-        $stmt  ->bindParam(":password", $this->pwd);
+        $stmt  ->bindParam(":pwd"     , $this->pwd);
 
         $stmt  ->execute();
     }
@@ -76,26 +80,28 @@ class User
             return;
         }
 
-        $query = "UPDATE user u JOIN usertype ut on u.ut_id = ut.ut_id SET
-                            status   = :status,
-                            name     = :name,
-                            username = :username,
-                            email    = :email,
-                            password = :password,
-                            deleted  = :deleted
-                    WHERE user_id    = _user_id;";
+        $query = "UPDATE user  SET
+                            user_status = :status,
+                            ut_id       = :ut_id,
+                            username    = :username,
+                            email       = :email,
+                            pwd         = :pwd,
+                            deleted     = :deleted
+                      WHERE user_id     = :user_id;";
 
         $stmt = PdoConnect::$connection->prepare($query);
-        $stmt ->bindParam(":status", $this->status);
-        $stmt ->bindParam(":name", $this->usertype);
-        $stmt ->bindParam(":username", $this->username);
-        $stmt ->bindParam(":email", $this->email);
-        $stmt ->bindParam(":password", $this->pwd);
-        $stmt ->bindParam(":deleted", $this->deleted);
+        $stmt ->bindParam(":user_id"  , $this->id);
+        $stmt ->bindParam(":status"   , $this->status);
+        $stmt ->bindParam(":ut_id"    , $this->type_id);
+        $stmt ->bindParam(":username" , $this->username);
+        $stmt ->bindParam(":email"    , $this->email);
+        $stmt ->bindParam(":pwd"      , $this->pwd);
+        $stmt ->bindParam(":deleted"  , $this->deleted);
 
         $stmt ->execute();
     }
 
+    #public function save($in_type_id = 1)
     public function save()
     {
         if($this->id > 0)
@@ -104,6 +110,7 @@ class User
         }
         else
         {
+            #$this->create($in_type_id);
             $this->create();
         }
     }
@@ -122,11 +129,11 @@ class User
 
     public function login($in_username, $in_pwd)
     {
-        $query = "SELECT u.*, ut.name FROM user u
+        $query = "SELECT u.*, ut.type_name FROM user u
                             JOIN usertype ut ON u.ut_id = ut.ut_id
-                            WHERE username = :username AND
-                                  u.deleted  = 0 AND
-                                  u.status = 1;";
+                            WHERE username        = :username AND
+                                  u.deleted       = 0 AND
+                                  u.user_status   = 1;";
         $stmt = PdoConnect::$connection->prepare($query);
         $stmt ->bindParam(":username", $in_username);
 
@@ -139,7 +146,7 @@ class User
             return false;
         }
 
-        $stored_hashed_pwd = $result[0]['password'];
+        $stored_hashed_pwd = $result[0]['pwd'];
 
         $config = include 'config/config.php';
         $pepper = $config['pepper'];
@@ -152,13 +159,14 @@ class User
             $update_stmt  ->bindParam(':id', $result[0]['user_id']);
             $update_stmt  ->execute();
         
-            $this->id = $result[0]['user_id'];
-            $this->usertype = $result[0]['name'];
+            $this->id       = $result[0]['user_id'];
+            $this->type_id  = $result[0]['ut_id'];
+            $this->usertype = $result[0]['type_name'];
             return $this->id;
         }
         else
         {
-            echo "login fehlgeschlagen";
+            
             return false;
         }    
         
@@ -221,6 +229,20 @@ class User
         return $temp_array;
     }
 
+    function get_all_user_types()
+    {
+        $tmp_array = [];
+        $query = "SELECT ut_id, type_name FROM usertype WHERE deleted = 0;";
+        foreach(PdoConnect::$connection->query($query) as $row)
+        {
+            $tmp_arr = [];
+            array_push($tmp_arr, $row[0]);
+            array_push($tmp_arr, $row[1]);
+            array_push($tmp_array, $tmp_arr);
+        }
+        return $tmp_array;
+    }
+
     public function get_id()
     {
         return $this->id;
@@ -229,6 +251,11 @@ class User
     public function get_status()
     {
         return $this->status;
+    }
+
+    public function get_type_id()
+    {
+        return $this->type_id;
     }
 
     public function get_usertype()
@@ -251,9 +278,19 @@ class User
         return $this->pwd;
     }
 
+    public function set_id($in_id)
+    {
+        $this->id = $in_id;
+    }
+
     public function set_status($in_status)
     {
         $this->status = $in_status;
+    }
+
+    public function set_type_id($in_type_id)
+    {
+        $this->type_id = $in_type_id;
     }
 
     public function set_role($in_usertype)

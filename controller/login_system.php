@@ -4,32 +4,51 @@
 
 function act_login()
 {
+    $error = "";
     if( g('username') != null)
     {
         $user = new User();
         $username = htmlspecialchars(g('username'));
         $pwd = htmlspecialchars(g('pwd'));
-        $user_id = $user->login($username, pwd_decrypt($pwd));
+        $user_id = $user->login($username, $pwd);
 
         if($user_id > 0)
         {
             $_SESSION['user_id'] = $user->get_id();
-            $_SESSION['user_role'] = $user->get_usertype();
+            $_SESSION['role_id'] = $user->get_type_id();
+        }
+        else
+        {
+            $error = "Ungültiger Benutzername oder Passwort.";
+            
         }
     }
 
-    if(!isset($_SESSION['user_id']))
+    if(!isset($_SESSION['user_id']) && !isset($_SESSION['role_id']))
     {
         $html_output = file_get_contents("assets/html/login.html");
-        output($html_output);
+        $out = str_replace("###LOGIN_ERROR###", $error, $html_output);
+        output($out);
+        die();
     }
-    output("Sie sind angemeldet!");
+    else
+    {
+        act_admin("Sie sind nun eingelogt!");
+    }
+    
+}
+
+function act_login_page()
+{
+    $html_output = file_get_contents("assets/html/login.html");
+    $out = str_replace("###LOGIN_ERROR###", "", $html_output);
+    output($out);
 }
 
 function act_logout()
 {
     unset($_SESSION['user_id']);
-    unset($_SESSION['user_role']);
+    unset($_SESSION['role_id']);
     session_destroy();
     output('Sie sind abgemeldet!');
 }
@@ -54,7 +73,7 @@ function act_goto_login()
 ################################################################## 
 function act_login_fe()
 {
-    //if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['pwd']))
+    if($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['username']) && isset($_POST['pwd']))
     {
         if(g('username') != null && g('pwd') != null)
         {
@@ -67,11 +86,18 @@ function act_login_fe()
             {
                 $_SESSION['user_id'] = $user->get_id();
             }
+            else
+            {
+                $_SESSION['login_error'] = "Invalid username or password.";
+                header("Location: index.php?act=login_fe");
+                exit;
+            }
         }
         if(!isset($_SESSION['user_id']))
         {
             $out = file_get_contents("assets/html/frontend/login.html");
             output_fe($out);
+            exit;
         }
         if(!isset($_SESSION['chat_history']))
         {
@@ -89,9 +115,14 @@ function act_login_fe()
             }
             send_greeting(g('username'));
         } 
+    }
+    else
+    {
+        header("Location: index.php");
+        exit;
     } 
-    header("Location: index.php?act=goto_chat");
-    //act_goto_chat();
+    act_goto_chat();
+    exit;
 }
 
 function act_logout_fe()
