@@ -69,7 +69,7 @@ function show_chatbot()
     {
         foreach ($_SESSION['chat_history'] as $message) {
             $time = $message['timestamp'];
-            if (substr($message['timestamp'], 0, 10) == date('Y-m-d')) {
+            if (substr($message['timestamp'], 0, 10) == date('d.m.Y')) {
                 $time = "today" . substr($message['timestamp'], 10);
             }
             if ($message['role'] === 'user') {
@@ -100,7 +100,7 @@ function act_goto_chat()
 function send_greeting($in_username)
 {
     $greeting = "Hallo " . $in_username . " was kann ich für dich tun?";
-    $history_date = date("Y-m-d H:i");
+    $history_date = date("d.m.Y H:i");
 
     $_SESSION['chat_history'][] = array(
         'role' => 'bot',
