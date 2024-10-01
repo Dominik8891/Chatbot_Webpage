@@ -71,24 +71,29 @@ h2 {
     box-sizing: border-box;
 }
 
-/* Senden-Button Styling */
-#chat-form input[type="submit"] {
-    background-color: #007bff;
-    color: #fff;
-    padding: 12px 25px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    align-self: flex-end; /* Senden-Button rechtsbündig */
-    transition: background-color 0.3s ease;
+/* Button-Wrapper für Rechtsbündigkeit */
+.button-wrapper {
+    display: flex;
+    justify-content: flex-end; /* Rechtsbündig */
+}
+
+#chat-form div.button-wrapper button[type="submit"] {
+    background-color: #007bff !important;
+    color: #fff !important;
+    padding: 12px 25px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    font-size: 16px !important;
+    font-weight: bold !important;
+    transition: background-color 0.3s ease !important;
 }
 
 /* Senden-Button Hover-Effekt */
-#chat-form input[type="submit"]:hover {
-    background-color: #0056b3;
+#chat-form div.button-wrapper button[type="submit"]:hover {
+    background-color: #0056b3 !important;
 }
+
 
 .logout {
     position: fixed;

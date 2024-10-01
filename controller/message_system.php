@@ -108,11 +108,11 @@ function send_greeting($in_username)
         'timestamp' => $history_date
     );
 
-    echo json_encode(array(
+    /*echo json_encode(array(
         'bot_message' => htmlspecialchars($greeting),
         'time' => $history_date,
         'now' => date('Y-m-d')
-    ));
+    ));*/
 }
 
 function write_message_in_db($in_msg, $in_msg_type)
