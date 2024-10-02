@@ -83,13 +83,15 @@ function act_list_user()
     }
     check_if_authorized();
 
-    $user = new User();
+    $user = new User($_SESSION['user_id']);
     $all_user_ids = $user->getAll();
 
     $table_html = file_get_contents("assets/html/list_user.html");
     $row_html = file_get_contents("assets/html/list_user_row.html");
 
     $all_rows = "";
+
+    
 
     foreach($all_user_ids as $one_user_id)
     {
@@ -99,18 +101,62 @@ function act_list_user()
         {
             $status = "Aktiv";
         }
+        $action = get_action($user, $tmp_user);
+        /*if($user->get_id() == $tmp_user->get_id())
+        {
+            $action   = "aktueller Benutzer";
+        }
+        elseif($user->get_usertype() == "Admin")
+        {
+            $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
+                         <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
+        }
+        elseif($user->get_type_id() <= $tmp_user->get_type_id())
+        {
+            $action  = "keine Berechtigung";
+        }
+        else
+        {
+            $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
+                         <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
+        }*/
 
         $tmp_row = str_replace("###ID###"       , $tmp_user->get_id()       , $row_html);
         $tmp_row = str_replace("###STATUS###"   , $status                   , $tmp_row);
         $tmp_row = str_replace("###ROLE###"     , $tmp_user->get_usertype() , $tmp_row);
         $tmp_row = str_replace("###USERNAME###" , $tmp_user->get_username() , $tmp_row);
         $tmp_row = str_replace("###EMAIL###"    , $tmp_user->get_email()    , $tmp_row);
+        $tmp_row = str_replace("###ACTION###"   , $action                   , $tmp_row);
+        #$tmp_row = str_replace("###DELETE###",    $delete                   , $tmp_row);
 
         $all_rows .= $tmp_row;
     }
     $out = str_replace("###USER_ROWS###", $all_rows, $table_html);
 
     output($out);
+}
+
+function get_action($in_user, $in_current_user)
+{
+    if($in_user->get_id() == $in_current_user->get_id())
+    {
+        $action   = "aktueller Benutzer";
+    }
+    elseif($in_user->get_usertype() == "Admin")
+    {
+        $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
+                        <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
+    }
+    elseif($in_user->get_type_id() <= $in_current_user->get_type_id())
+    {
+        $action  = "keine Berechtigung";
+    }
+    else
+    {
+        $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
+                        <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
+    }
+    return $action;
 }
 
 function act_delete_user()
