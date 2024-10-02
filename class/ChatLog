@@ -119,6 +119,8 @@ class ChatLog
                   SELECT *
                   FROM chatlog
                   WHERE msg_type = 'bot'
+                  AND  user_id = :user_id
+                  AND deleted = 0
                   AND timestamp >= (SELECT min_user_timestamp FROM first_user_timestamp)
                   
                   UNION ALL
@@ -145,11 +147,6 @@ class ChatLog
                 array_push($tmp_array, $tmp_arr);
             }
             return $tmp_array;
-        }
-        else
-        {
-            echo "Fehler!!!!!";
-            return;
         }
     }
 

@@ -111,6 +111,10 @@ function home()
 function act_start()
 {
     $html = file_get_contents("assets/html/frontend/home.html");
+	if(isset($_SESSION['user_id']))
+	{
+		$html = file_get_contents("assets/html/frontend/goto_chat.html");
+	}
     
     output_fe($html);
 }

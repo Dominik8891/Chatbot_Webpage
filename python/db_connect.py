@@ -82,6 +82,8 @@ def get_history(id, limit=5):
                   SELECT msg_type, msg, timestamp
                   FROM chatlog
                   WHERE msg_type = 'bot'
+                  AND user_id = %s
+                  AND deleted = 0
                   AND timestamp >= (SELECT min_user_timestamp FROM first_user_timestamp)
                   
                   UNION ALL
@@ -92,7 +94,7 @@ def get_history(id, limit=5):
                   AND deleted = 0
                   ORDER BY timestamp DESC;"""
     
-    params = (id, limit, id)  # Verwende ein Tuple hier
+    params = (id, limit, id, id)  # Verwende ein Tuple hier
     results = fetch_query_results(connection, query, params)
     close_connection(connection)
     try:

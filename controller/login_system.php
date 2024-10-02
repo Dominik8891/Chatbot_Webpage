@@ -105,17 +105,20 @@ function act_login_fe()
             $history->set_user_id($_SESSION['user_id']);
             $chat_history = $history->get_history_as_array();
             if(!isset($_SESSION['chat_history']))
-            foreach($chat_history as $row)
+            if($chat_history != null)
             {
-                $originalDate = substr($row[3], 0, 10);
-                $time         = substr($row[3], 11);
-                $dateObject   = new DateTime($originalDate);
-                $_SESSION['chat_history'][] = array(
-                    'role' => $row[1],
-                    'content' => $row[2],
-                    'timestamp' => $dateObject->format('d.m.Y') . ' ' . $time
-                );
-            }
+                foreach($chat_history as $row)
+                {
+                    $originalDate = substr($row[3], 0, 10);
+                    $time         = substr($row[3], 11);
+                    $dateObject   = new DateTime($originalDate);
+                    $_SESSION['chat_history'][] = array(
+                        'role' => $row[1],
+                        'content' => $row[2],
+                        'timestamp' => $dateObject->format('d.m.Y') . ' ' . $time
+                    );
+                }
+            } 
             send_greeting(g('username'));
         } 
     }
