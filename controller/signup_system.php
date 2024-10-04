@@ -17,13 +17,11 @@ function act_signup()
         if($user->check_if_username_exists($username))
         {
             header("Location: index.php?act=signup_page&error=username");
-            #output("index.php?act=signup_page?error=username");
             die;
         }
         if($user->check_if_email_exists($email))
         {
             header("Location: index.php?act=signup_page&error=email");
-            #output("index.php?act=signup_page?error=email");
             die;
         }
         if($pwd == $pwd_scnd)
@@ -37,7 +35,6 @@ function act_signup()
         else
         {
             header("Location: index.php?act=signup_page&error=pw");
-            #output("index.php?act=signup_page?error=pw");
             die;
         }
 

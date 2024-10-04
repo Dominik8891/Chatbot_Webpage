@@ -23,7 +23,7 @@ function output( $in_content )
 		$user = new User( $_SESSION['user_id'] );
 		
 		## den login-text mit einem logout text überschreiben
-		$user_txt  = "| <span> Sie sind angemeldet als: ". $user->get_username() ." </span> ";		
+		$user_txt  = "| <span> Sie sind angemeldet als: <b>". $user->get_username() ."</b> </span> ";		
 		$text = " <a href='index.php?act=logout'>Logout</a>";
 		$sign = "<a href='index.php?act=list_user'>Benutzerliste</a>";
 	}

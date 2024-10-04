@@ -8,7 +8,6 @@ function act_manage_user()
     {
         home();
     }
-    check_if_authorized();
 
     $out = file_get_contents("assets/html/manage_user.html");
 
@@ -24,7 +23,7 @@ function act_manage_user()
     {
         $status_arr = ["Inaktiv","Aktiv"];
         $status_out = gen_html_options($status_arr, $tmp_user->get_status(), false);
-        $user_info = "bearbeiten (" . $tmp_user->get_id() . ")";
+        $user_info = $tmp_user->get_id() . " (" . $tmp_user->get_username() . ")" . " bearbeiten ";
         $get_status = "<label>Status:</label> <select name='status'> ###GET_STATUS### </select>";
         $status = str_replace("###GET_STATUS###", $status_out, $get_status);
     }
@@ -61,7 +60,8 @@ function act_manage_user()
             array_push($tmp_arr, $row[1]);
         }  
     }
-    $role_out = gen_html_options($tmp_arr, $tmp_user->get_usertype(), false);
+    if($user_roles[1][1] == $tmp_user->get_usertype())$role_out = gen_html_options($tmp_arr, $tmp_user->get_usertype(), false);
+    else $role_out = "<option value='0'> DEDELZ </option>";
 
     $out = str_replace("###ID###"       , $tmp_user->get_id()       , $out);
     $out = str_replace("###STATUS###"   , $status                   , $out);
@@ -81,7 +81,6 @@ function act_list_user()
     {
         home();
     }
-    check_if_authorized();
 
     $user = new User($_SESSION['user_id']);
     $all_user_ids = $user->getAll();
@@ -102,24 +101,6 @@ function act_list_user()
             $status = "Aktiv";
         }
         $action = get_action($user, $tmp_user);
-        /*if($user->get_id() == $tmp_user->get_id())
-        {
-            $action   = "aktueller Benutzer";
-        }
-        elseif($user->get_usertype() == "Admin")
-        {
-            $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
-                         <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
-        }
-        elseif($user->get_type_id() <= $tmp_user->get_type_id())
-        {
-            $action  = "keine Berechtigung";
-        }
-        else
-        {
-            $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
-                         <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
-        }*/
 
         $tmp_row = str_replace("###ID###"       , $tmp_user->get_id()       , $row_html);
         $tmp_row = str_replace("###STATUS###"   , $status                   , $tmp_row);
@@ -127,7 +108,6 @@ function act_list_user()
         $tmp_row = str_replace("###USERNAME###" , $tmp_user->get_username() , $tmp_row);
         $tmp_row = str_replace("###EMAIL###"    , $tmp_user->get_email()    , $tmp_row);
         $tmp_row = str_replace("###ACTION###"   , $action                   , $tmp_row);
-        #$tmp_row = str_replace("###DELETE###",    $delete                   , $tmp_row);
 
         $all_rows .= $tmp_row;
     }
@@ -140,12 +120,12 @@ function get_action($in_user, $in_current_user)
 {
     if($in_user->get_id() == $in_current_user->get_id())
     {
-        $action   = "aktueller Benutzer";
+        $action   = 'aktueller Benutzer | <a href="index.php?act=manage_user&user_id=' . $in_current_user->get_id() .'">Ändern</a>';
     }
     elseif($in_user->get_usertype() == "Admin")
     {
-        $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
-                        <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
+        $action   = '<a href="index.php?act=manage_user&user_id=' . $in_current_user->get_id() .'">Ändern</a> | 
+                        <a href="#" onclick="del(\'index.php?act=delete_user&user_id='. $in_current_user->get_id() .'\')">Löschen</a>';
     }
     elseif($in_user->get_type_id() <= $in_current_user->get_type_id())
     {
@@ -153,35 +133,16 @@ function get_action($in_user, $in_current_user)
     }
     else
     {
-        $action   = '<a href="index.php?act=manage_user&user_id=###ID###">Edit</a> | 
-                        <a href="#" onclick="del(\'index.php?act=delete_user&user_id=###ID###\')">Löschen</a>';
+        $action   = '<a href="index.php?act=manage_user&user_id=' . $in_current_user->get_id() .'">Ändern</a> | 
+                        <a href="#" onclick="del(\'index.php?act=delete_user&user_id=' . $in_current_user->get_id() .'\')">Löschen</a>';
     }
     return $action;
 }
 
 function act_delete_user()
 {
-    check_if_authorized();
-
     $tmp_user = new User(g('user_id'));
     $tmp_user->del_it();
 
     act_list_user();
-}
-
-function check_if_authorized()
-{
-    if(!isset($_SESSION['user_id']))
-    {
-        home();
-    }
-    if(!isset($_SESSION['user_role']))
-    {
-        $user = new User($_SESSION['user_id']);
-        $_SESSION['user_role'] = $user->get_usertype();
-    }
-    if($_SESSION['user_role'] == "Umschüler")
-    {
-        home();
-    }
 }

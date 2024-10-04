@@ -31,6 +31,10 @@ function act_login()
         output($out);
         die();
     }
+    elseif($_SESSION['role_id'] < 3)
+    {
+        act_admin("Keine Berechtigung");
+    }
     else
     {
         act_admin("Sie sind nun eingelogt!");
@@ -85,15 +89,16 @@ function act_login_fe()
             if($user_id > 0)
             {
                 $_SESSION['user_id'] = $user->get_id();
+                $_SESSION['role_id'] = $user->get_type_id();
             }
             else
             {
-                $_SESSION['login_error'] = "Invalid username or password.";
+                $_SESSION['login_error'] = "Ungültiger Benutzername oder Passwort";
                 header("Location: index.php?act=login_fe");
                 exit;
             }
         }
-        if(!isset($_SESSION['user_id']))
+        if(!isset($_SESSION['user_id']) || $_SESSION['role_id'] < 2)
         {
             $out = file_get_contents("assets/html/frontend/login.html");
             output_fe($out);
