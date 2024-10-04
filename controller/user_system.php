@@ -10,10 +10,6 @@ function act_manage_user()
     }
 
     $out = file_get_contents("assets/html/manage_user.html");
-
-    // wird noch benötigt für berechtigung zur bearbeitung bzw auswahl von benutzertypen
-    $user = new User(intval($_SESSION['user_id']));
-    //
     $tmp_user = new User(intval(g('user_id')));
 
     $user_info = " neu anlegen";
@@ -21,11 +17,8 @@ function act_manage_user()
     // user mit GET id laden
     if(g('user_id') != null && g('send') == null)
     {
-        $status_arr = ["Inaktiv","Aktiv"];
-        $status_out = gen_html_options($status_arr, $tmp_user->get_status(), false);
+        $status = get_status($tmp_user);
         $user_info = $tmp_user->get_id() . " (" . $tmp_user->get_username() . ")" . " bearbeiten ";
-        $get_status = "<label>Status:</label> <select name='status'> ###GET_STATUS### </select>";
-        $status = str_replace("###GET_STATUS###", $status_out, $get_status);
     }
     // Userdaten aus Formular speichern
     elseif(g('send') != null)
@@ -47,21 +40,7 @@ function act_manage_user()
         act_list_user();
     }
     
-    $user_roles = $tmp_user->get_all_user_types();
-    $tmp_arr = [];
-    foreach($user_roles as $row)
-    {
-        if($_SESSION['role_id'] > intval($row[0]))
-        {
-            array_push($tmp_arr, $row[1]);
-        }
-        elseif(intval($_SESSION['role_id']) == 4)
-        {
-            array_push($tmp_arr, $row[1]);
-        }  
-    }
-    if($user_roles[1][1] == $tmp_user->get_usertype())$role_out = gen_html_options($tmp_arr, $tmp_user->get_usertype(), false);
-    else $role_out = "<option value='0'> DEDELZ </option>";
+    $role_out = get_role_options();
 
     $out = str_replace("###ID###"       , $tmp_user->get_id()       , $out);
     $out = str_replace("###STATUS###"   , $status                   , $out);
@@ -86,31 +65,9 @@ function act_list_user()
     $all_user_ids = $user->getAll();
 
     $table_html = file_get_contents("assets/html/list_user.html");
-    $row_html = file_get_contents("assets/html/list_user_row.html");
 
-    $all_rows = "";
-
+    $all_rows = generate_user_rows($user, $all_user_ids);
     
-
-    foreach($all_user_ids as $one_user_id)
-    {
-        $tmp_user = new User($one_user_id);
-        $status = "Inaktiv";
-        if($tmp_user->get_status() == 1)
-        {
-            $status = "Aktiv";
-        }
-        $action = get_action($user, $tmp_user);
-
-        $tmp_row = str_replace("###ID###"       , $tmp_user->get_id()       , $row_html);
-        $tmp_row = str_replace("###STATUS###"   , $status                   , $tmp_row);
-        $tmp_row = str_replace("###ROLE###"     , $tmp_user->get_usertype() , $tmp_row);
-        $tmp_row = str_replace("###USERNAME###" , $tmp_user->get_username() , $tmp_row);
-        $tmp_row = str_replace("###EMAIL###"    , $tmp_user->get_email()    , $tmp_row);
-        $tmp_row = str_replace("###ACTION###"   , $action                   , $tmp_row);
-
-        $all_rows .= $tmp_row;
-    }
     $out = str_replace("###USER_ROWS###", $all_rows, $table_html);
 
     output($out);
@@ -145,4 +102,61 @@ function act_delete_user()
     $tmp_user->del_it();
 
     act_list_user();
+}
+
+function get_status($in_user)
+{
+    $status_arr = ["Inaktiv","Aktiv"];
+    $status_out = gen_html_options($status_arr, $in_user->get_status(), false);
+    $get_status = "<label>Status:</label> <select name='status'> ###GET_STATUS### </select>";
+    $status = str_replace("###GET_STATUS###", $status_out, $get_status);
+    return $status;
+}
+
+function get_role_options()
+{
+    $tmp_user = new User();
+    $user_roles = $tmp_user->get_all_user_types();
+    $tmp_arr = [];
+    foreach($user_roles as $row)
+    {
+        if($_SESSION['role_id'] > intval($row[0]))
+        {
+            array_push($tmp_arr, $row[1]);
+        }
+        elseif(intval($_SESSION['role_id']) == 4)
+        {
+            array_push($tmp_arr, $row[1]);
+        }  
+    }
+    $role_out = gen_html_options($tmp_arr, $tmp_user->get_usertype(), false);
+    return $role_out;
+}
+
+function generate_user_rows($in_user, $in_user_ids)
+{
+    $row_html = file_get_contents("assets/html/list_user_row.html");
+
+    $all_rows = "";
+
+    foreach($in_user_ids as $one_user_id)
+    {
+        $tmp_user = new User($one_user_id);
+        $status = "Inaktiv";
+        if($tmp_user->get_status() == 1)
+        {
+            $status = "Aktiv";
+        }
+        $action = get_action($in_user, $tmp_user);
+
+        $tmp_row = str_replace("###ID###"       , $tmp_user->get_id()       , $row_html);
+        $tmp_row = str_replace("###STATUS###"   , $status                   , $tmp_row);
+        $tmp_row = str_replace("###ROLE###"     , $tmp_user->get_usertype() , $tmp_row);
+        $tmp_row = str_replace("###USERNAME###" , $tmp_user->get_username() , $tmp_row);
+        $tmp_row = str_replace("###EMAIL###"    , $tmp_user->get_email()    , $tmp_row);
+        $tmp_row = str_replace("###ACTION###"   , $action                   , $tmp_row);
+
+        $all_rows .= $tmp_row;
+    }
+    return $all_rows;
 }

@@ -105,7 +105,6 @@ function output_fe( $in_content )
 function home()
 {
     act_start();
-	//act_admin();
 }
 
 function act_start()

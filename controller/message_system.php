@@ -1,35 +1,18 @@
 <?php
 
-function act_get_name_for_greeting()
-{
-    if (isset($_POST['login'])) {
-        $user = new User($_SESSION['user_id']);
-        $response = [
-            'username' => $user->get_username()
-        ];
-        echo json_encode($response);
-    }
-}
-
 function act_process_message()
 {
     if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['message'])) {
     
         $user_msg = htmlspecialchars($_POST['message']);
+        $history_date = date("d.m.Y H:i");
 
         $json_data = array(
             'message' => $user_msg,
             'user_id' => $_SESSION['user_id']
         );
 
-        $original_dir = getcwd();
-        chdir('python');
-        $command = 'python main.py ' . base64_encode(json_encode($json_data));
-        $output = shell_exec(escapeshellcmd($command));
-        chdir($original_dir);
-
-        $response = json_decode($output);
-        $history_date = date("d.m.Y H:i");
+        $response = send_json_to_llm($json_data);
 
         if($response == null || $response == "")
         {
@@ -59,6 +42,18 @@ function act_process_message()
     }
 }
 
+function send_json_to_llm($in_json)
+{
+    $original_dir = getcwd();
+    chdir('python');
+    $command = 'python main.py ' . base64_encode(json_encode($in_json));
+    $output = shell_exec(escapeshellcmd($command));
+    chdir($original_dir);
+    $response = json_decode($output);
+
+    return $response;
+}
+
 function show_chatbot()
 {
     $chat_history = file_get_contents("assets/html/frontend/chatbot.html");
@@ -74,11 +69,11 @@ function show_chatbot()
             }
             if ($message['role'] === 'user') {
                 $tmp_hist = str_replace("###MESSAGE###", $message['content'], $user_history);
-                $tmp_hist = str_replace("###TIME###", $time, $tmp_hist);
             } elseif ($message['role'] === 'bot') {
                 $tmp_hist = str_replace("###MESSAGE###", $message['content'], $bot_history);
-                $tmp_hist = str_replace("###TIME###", $time, $tmp_hist);
             }
+            $tmp_hist = str_replace("###TIME###", $time, $tmp_hist);
+
             $tmp_history .= $tmp_hist;
         }
     }
