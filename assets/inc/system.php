@@ -2,118 +2,161 @@
 
 ################################################  ADMIN BEREICH #####################################################
 
-function output( $in_content )
+/**
+ * Gibt den HTML-Inhalt der Admin-Seite aus und beendet die PHP-Ausführung.
+ *
+ * @param string $in_content Der Inhalt, der in die Seite eingefügt werden soll.
+ */
+function output($in_content)
 {
-	## laden der index.html die die Grundstruktur unserer Seite darstellt
-	$out = file_get_contents( "assets/html/index.html" ); 
+	// Laden der Grundstruktur der Seite aus einer HTML-Datei
+	$out = file_get_contents("assets/html/index.html"); 
 	
-	## den CONTENT Platzhalter mit dem aktuellen Inhalt ersetzen
-	$out = str_replace( "###CONTENT###" , $in_content , $out );
+	// Ersetzt den Platzhalter ###CONTENT### durch den aktuellen Inhalt
+	$out = str_replace("###CONTENT###", $in_content, $out);
 
+	// Standardmäßig wird der "Sign Up"-Link angezeigt
 	$sign = "<a href='index.php?act=signup_page'>Sign Up</a>";
 	$user_txt = "";
-	
-	## default den LOGIN Link zeigen
+
+	// Standardmäßig wird der "Login"-Link angezeigt
 	$text = "<a href='index.php?act=login_page'>Login</a>";
-	
-	## wenn jemand angemeldet ist .. dann >>
-	if( isset( $_SESSION['user_id'] ) && isset($_SESSION['role_id']) && $_SESSION['role_id'] > 2)
+
+	// Wenn der Benutzer angemeldet ist und eine Rolle größer als 2 hat (z.B. Admin oder Moderator)
+	if (isset($_SESSION['user_id']) && isset($_SESSION['role_id']) && $_SESSION['role_id'] > 2)
 	{	
-		## den User aus Datenbank laden
-		$user = new User( $_SESSION['user_id'] );
+		// Benutzerinformationen aus der Datenbank laden
+		$user = new User($_SESSION['user_id']);
 		
-		## den login-text mit einem logout text überschreiben
-		$user_txt  = "| <span> Sie sind angemeldet als: <b>". $user->get_username() ."</b> </span> ";		
+		// Überschreibt den Login-Text mit einem Logout-Text und zeigt den Benutzernamen an
+		$user_txt  = "| <span> Sie sind angemeldet als: <b>". $user->get_username() ."</b> </span>";		
 		$text = " <a href='index.php?act=logout'>Logout</a>";
-		$sign = "<a href='index.php?act=list_user'>Benutzerliste</a>";
+		$sign = "<a href='index.php?act=list_user'>Benutzerliste</a>"; // Link zur Benutzerliste für Administratoren
 	}
 	
-	## den LOGOUT Platzhalter mit dem vorher erzeugten Text ersetzten
-	$out = str_replace( "###LOGOUT###" , $text , $out );
+	// Ersetzt die Platzhalter ###LOGOUT###, ###USER### und ###REGISTER### mit den entsprechenden Werten
+	$out = str_replace("###LOGOUT###", $text, $out);
 	$out = str_replace("###USER###", $user_txt, $out);
 	$out = str_replace("###REGISTER###", $sign, $out);
 		
-    ## den HTML code ausgeben und das PHP beenden
-	die( $out ); ## ENDE DES PHP !!!! 
+    // Gibt das finale HTML aus und beendet die PHP-Ausführung
+	die($out); 
 }
 
-
-
+/**
+ * Gibt eine Admin-Seite aus, optional mit einer benutzerdefinierten Nachricht.
+ *
+ * @param string $in_msg Die Nachricht, die im Admin-Panel angezeigt werden soll.
+ */
 function act_admin($in_msg = "Willkommen im Admin Panel")
 {
-    output($in_msg);
+    output($in_msg); // Gibt die Admin-Seite aus
 }
 
 ################################################  ADMIN BEREICH #####################################################
 
-function g( $assoc_index )
+/**
+ * Holt einen Wert aus dem $_REQUEST-Array, basierend auf einem übergebenen Index.
+ *
+ * @param string $assoc_index Der Schlüssel im $_REQUEST-Array.
+ * @return mixed|null Der Wert des Schlüssels oder null, wenn er nicht existiert.
+ */
+function g($assoc_index)
 {
-	if( isset( $_REQUEST[$assoc_index] ) == false )
+	if (!isset($_REQUEST[$assoc_index]))
 	{
-		return null;
+		return null; // Gibt null zurück, wenn der Index nicht existiert
 	}
 	
-	return $_REQUEST[$assoc_index];
+	return $_REQUEST[$assoc_index]; // Gibt den Wert des $_REQUEST-Schlüssels zurück
 }
 
-function gen_html_options( $in_data_array , $in_selected_id , $in_add_empty  )
+/**
+ * Generiert ein HTML-Dropdown-Menü (Select-Optionen) basierend auf einem Array.
+ *
+ * @param array $in_data_array Array von Werten für die Optionen.
+ * @param mixed $in_selected_id Die ID des aktuell ausgewählten Elements.
+ * @param bool $in_add_empty Ob eine leere Option hinzugefügt werden soll.
+ * @return string Das generierte HTML für die Optionen.
+ */
+function gen_html_options($in_data_array, $in_selected_id, $in_add_empty)
 {	
 	$out_opt = "";
+
+	// Fügt eine leere Option hinzu, wenn $in_add_empty auf true gesetzt ist
+	if ($in_add_empty == true)
+	{
+		$out_opt .= '<option value=0>  -- KEINE --  </option>';
+	}	
 	
-	if( $in_add_empty == true )
-	  {
-		$out_opt .= '<option value=0  >  -- KEINE --  </option>';
-	  }	
-	
-	foreach( $in_data_array as $key => $val )	
+	// Generiert HTML für jede Option im Array
+	foreach ($in_data_array as $key => $val)
 	{		
 		$sel = "";
 		
-		if( $key  == $in_selected_id )
+		// Markiert die Option als ausgewählt, wenn die ID übereinstimmt
+		if ($key == $in_selected_id)
 			$sel = "selected";
 		
-		$out_opt    .= '<option value="'. $key .'"  '. $sel .' > '. $val .' </option>';
+		// Erzeugt das HTML für jede Option
+		$out_opt .= '<option value="'. $key .'"  '. $sel .' > '. $val .' </option>';
 	}	
 	
-	return $out_opt ;
+	return $out_opt; // Gibt das HTML der Optionen zurück
 }
 
 ################################################  USER BEREICH  #####################################################  
 
-function output_fe( $in_content )
+/**
+ * Gibt den HTML-Inhalt der Benutzeroberfläche aus und beendet die PHP-Ausführung.
+ *
+ * @param string $in_content Der Inhalt, der in die Seite eingefügt werden soll.
+ */
+function output_fe($in_content)
 {
-	## laden der index.html die die Grundstruktur unserer Seite darstellt
-	$html   = file_get_contents("assets/html/frontend/index.html"); 
+	// Lädt die Grundstruktur der Benutzeroberfläche aus einer HTML-Datei
+	$html = file_get_contents("assets/html/frontend/index.html");
 	$logout = "";
-	$out    = $in_content;	
+	$out = $in_content;
 
-	if(isset($_SESSION['user_id']))
+	// Wenn der Benutzer eingeloggt ist
+	if (isset($_SESSION['user_id']))
 	{
+		// Lädt das Logout-Template und ersetzt den Platzhalter mit dem Benutzernamen
 		$logout = file_get_contents("assets/html/frontend/logout.html");
 		$user = new User($_SESSION['user_id']);
 		$logout = str_replace("###USERNAME###", $user->get_username(), $logout);
 	}
 
-	$logout = str_replace("###LOGOUT###"  , $logout , $html);
-    $out 	= str_replace("###CONTENT###" , $out 	, $logout);
+	// Ersetzt den ###LOGOUT###-Platzhalter im HTML und den ###CONTENT###-Platzhalter
+	$logout = str_replace("###LOGOUT###", $logout, $html);
+	$out = str_replace("###CONTENT###", $out, $logout);
 		
-    ## den HTML code ausgeben und das PHP beenden
-	die( $out ); ## ENDE DES PHP !!!! 
+	// Gibt das finale HTML aus und beendet die PHP-Ausführung
+	die($out); 
 }
 
-
+/**
+ * Zeigt die Startseite oder das Chatfenster, wenn der Benutzer eingeloggt ist.
+ */
 function home()
 {
-    act_start();
+    act_start(); // Ruft die Startseite oder das Chatfenster auf
 }
 
+/**
+ * Zeigt die Startseite oder das Chatfenster, abhängig vom Benutzerstatus.
+ */
 function act_start()
 {
-    $html = file_get_contents("assets/html/frontend/home.html");
-	if(isset($_SESSION['user_id']))
+    // Lädt die Home-Seite, wenn der Benutzer nicht eingeloggt ist
+	$html = file_get_contents("assets/html/frontend/home.html");
+	
+	// Wenn der Benutzer eingeloggt ist, wird das Chat-Interface geladen
+	if (isset($_SESSION['user_id']))
 	{
 		$html = file_get_contents("assets/html/frontend/goto_chat.html");
 	}
     
-    output_fe($html);
+    output_fe($html); // Gibt die Seite mit dem entsprechenden Inhalt aus
 }

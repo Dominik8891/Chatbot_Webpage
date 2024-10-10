@@ -1,7 +1,11 @@
 <?php
 
+/**
+ * Klasse zur Verwaltung der Benutzerinformationen und Interaktionen mit der Datenbank.
+ */
 class User
 {
+    // Private Attribute für Benutzerinformationen
     private $id;
     private $status;
     private $type_id;
@@ -11,8 +15,14 @@ class User
     private $pwd;
     private $deleted;
 
+    /**
+     * Konstruktor, der entweder einen bestehenden Benutzer aus der Datenbank lädt oder einen neuen Benutzer erstellt.
+     *
+     * @param string|int $in_id Benutzer-ID
+     */
     public function __construct(string|int $in_id = 0)
     {
+        // Wenn eine gültige Benutzer-ID übergeben wird, den Benutzer aus der Datenbank laden
         if($in_id > 0)
         {
             $query = "SELECT u.*, ut.type_name 
@@ -24,8 +34,11 @@ class User
             $stmt  ->execute();
 
             $result = $stmt->fetchAll();
+
+            // Überprüfen, ob ein Ergebnis vorliegt
             if(count($result) == 1)
             {
+                // Benutzerinformationen aus der Datenbank in die Klassenattribute laden
                 $this->id       = $result[0]['user_id'];
                 $this->status   = $result[0]['user_status'];
                 $this->type_id  = $result[0]['ut_id'];
@@ -46,13 +59,15 @@ class User
         }
         else
         {
-            //neuen Benutzer anlegen
+            // Neuer Benutzer wird angelegt
             $this->id = 0;
             $this->deleted = 0;
         }
     }
 
-    #private function create($in_type_id)
+    /**
+     * Erstellen eines neuen Benutzers in der Datenbank.
+     */
     private function create()
     {
         if($this->id > 0)
@@ -72,6 +87,9 @@ class User
         $stmt  ->execute();
     }
 
+    /**
+     * Aktualisieren eines bestehenden Benutzers in der Datenbank.
+     */
     private function update()
     {
         if($this->id < 1)
@@ -101,7 +119,9 @@ class User
         $stmt ->execute();
     }
 
-    #public function save($in_type_id = 1)
+    /**
+     * Speichern eines Benutzers. Wenn die ID 0 ist, wird der Benutzer erstellt, sonst aktualisiert.
+     */
     public function save()
     {
         if($this->id > 0)
@@ -110,11 +130,13 @@ class User
         }
         else
         {
-            #$this->create($in_type_id);
             $this->create();
         }
     }
 
+    /**
+     * Markiert den Benutzer als gelöscht.
+     */
     public function del_it()
     {
         if($this->id < 1)
@@ -127,6 +149,13 @@ class User
         $this->update();
     }
 
+    /**
+     * Versucht einen Benutzer zu authentifizieren.
+     *
+     * @param string $in_username Benutzername
+     * @param string $in_pwd Passwort
+     * @return mixed Benutzer-ID oder false bei Fehler
+     */
     public function login($in_username, $in_pwd)
     {
         $query = "SELECT u.*, ut.type_name FROM user u
@@ -172,6 +201,12 @@ class User
         
     }
 
+    /**
+     * Überprüft, ob ein Benutzername bereits in der Datenbank existiert.
+     *
+     * @param string $in_username Benutzername
+     * @return bool true, wenn der Benutzername existiert, sonst false
+     */
     public function check_if_username_exists($in_username)
     {
         $query = "SELECT * FROM user WHERE username = :username";
@@ -181,6 +216,7 @@ class User
         $stmt->execute();
         $result = $stmt->fetch();
 
+        // Gibt true zurück, wenn ein Datensatz gefunden wurde, sonst false
         if($result)
         {
             return true;
@@ -188,6 +224,12 @@ class User
         return false;
     }
 
+    /**
+     * Überprüft, ob eine E-Mail-Adresse bereits in der Datenbank existiert.
+     *
+     * @param string $in_email E-Mail-Adresse
+     * @return bool true, wenn die E-Mail existiert, sonst false
+     */
     public function check_if_email_exists($in_email)
     {
         $query = "SELECT * FROM user WHERE email = :email";
@@ -197,6 +239,7 @@ class User
         $stmt->execute();
         $result = $stmt->fetch();
 
+        // Gibt true zurück, wenn ein Datensatz gefunden wurde, sonst false
         if($result)
         {
             return true;
@@ -204,12 +247,20 @@ class User
         return false;
     }
 
+    /**
+     * Gibt die Benutzerinformationen als Array zurück.
+     *
+     * @return array Enthält Benutzerstatus, Benutzertyp, Benutzername und E-Mail
+     */
     public function get_user_info_as_array()
     {
+        // Überprüfung, ob der Benutzer existiert
         if($this->id < 0)
         {
             die("Fehler: keine User Info vorhanden!");
         }
+
+        // Benutzerinformationen in ein Array laden und zurückgeben
         $tmp_array = [];
         array_push($tmp_array, $this->status);
         array_push($tmp_array, $this->usertype);
@@ -218,10 +269,17 @@ class User
         return $tmp_array;
     }
 
+    /**
+     * Gibt eine Liste aller Benutzer-IDs zurück, die nicht gelöscht wurden.
+     *
+     * @return array Enthält Benutzer-IDs
+     */
     public function getAll()
     {
         $temp_array = [];
         $query = "SELECT user_id FROM user WHERE deleted = 0;";
+
+        // Füge jede gefundene Benutzer-ID zum Array hinzu
         foreach(PdoConnect::$connection->query($query) as $row)
         {
             array_push($temp_array, $row[0]);
@@ -229,10 +287,17 @@ class User
         return $temp_array;
     }
 
+    /**
+     * Gibt eine Liste aller Benutzertypen zurück, die nicht gelöscht wurden.
+     *
+     * @return array Enthält Arrays mit [ut_id, type_name] für jeden Benutzertyp
+     */
     function get_all_user_types()
     {
         $tmp_array = [];
         $query = "SELECT ut_id, type_name FROM usertype WHERE deleted = 0;";
+
+        // Füge für jeden gefundenen Benutzertyp ein Array mit ID und Name hinzu
         foreach(PdoConnect::$connection->query($query) as $row)
         {
             $tmp_arr = [];
@@ -243,73 +308,147 @@ class User
         return $tmp_array;
     }
 
-    public function get_id()
-    {
-        return $this->id;
-    }
+    // Setter-Methoden
 
-    public function get_status()
-    {
-        return $this->status;
-    }
-
-    public function get_type_id()
-    {
-        return $this->type_id;
-    }
-
-    public function get_usertype()
-    {
-        return $this->usertype;
-    }
-
-    public function get_username()
-    {
-        return $this->username;
-    }
-
-    public function get_email()
-    {
-        return $this->email;
-    }
-
-    public function get_pwd()
-    {
-        return $this->pwd;
-    }
-
+    /**
+     * Setzt die Benutzer-ID.
+     *
+     * @param int $in_id Benutzer-ID
+     */
     public function set_id($in_id)
     {
         $this->id = $in_id;
     }
 
+    /**
+     * Setzt den Benutzerstatus.
+     *
+     * @param int $in_status Benutzerstatus
+     */
     public function set_status($in_status)
     {
         $this->status = $in_status;
     }
 
+    /**
+     * Setzt die Benutzertyp-ID.
+     *
+     * @param int $in_type_id Benutzertyp-ID
+     */
     public function set_type_id($in_type_id)
     {
         $this->type_id = $in_type_id;
     }
 
+    /**
+     * Setzt den Benutzertypnamen.
+     *
+     * @param string $in_usertype Benutzertypname
+     */
     public function set_role($in_usertype)
     {
         $this->usertype = $in_usertype;
     }
 
+    /**
+     * Setzt den Benutzernamen.
+     *
+     * @param string $in_username Benutzername
+     */
     public function set_username($in_username)
     {
         $this->username = $in_username;
     }
 
+    /**
+     * Setzt die E-Mail-Adresse.
+     *
+     * @param string $in_email E-Mail-Adresse
+     */
     public function set_email($in_email)
     {
         $this->email = $in_email;
     }
 
+    /**
+     * Setzt das Passwort (Hash).
+     *
+     * @param string $in_pwd Passwort-Hash
+     */
     public function set_pwd($in_pwd)
     {
         $this->pwd = $in_pwd;
+    }
+
+    // Getter-Methoden
+
+    /**
+     * Gibt die Benutzer-ID zurück.
+     *
+     * @return int Benutzer-ID
+     */
+    public function get_id()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Gibt den Benutzerstatus zurück.
+     *
+     * @return int Benutzerstatus
+     */
+    public function get_status()
+    {
+        return $this->status;
+    }
+
+    /**
+     * Gibt die Benutzertyp-ID zurück.
+     *
+     * @return int Benutzertyp-ID
+     */
+    public function get_type_id()
+    {
+        return $this->type_id;
+    }
+
+    /**
+     * Gibt den Benutzertypnamen zurück.
+     *
+     * @return string Benutzertypname
+     */
+    public function get_usertype()
+    {
+        return $this->usertype;
+    }
+
+    /**
+     * Gibt den Benutzernamen zurück.
+     *
+     * @return string Benutzername
+     */
+    public function get_username()
+    {
+        return $this->username;
+    }
+
+    /**
+     * Gibt die E-Mail-Adresse zurück.
+     *
+     * @return string E-Mail-Adresse
+     */
+    public function get_email()
+    {
+        return $this->email;
+    }
+
+    /**
+     * Gibt das Passwort (Hash) zurück.
+     *
+     * @return string Passwort-Hash
+     */
+    public function get_pwd()
+    {
+        return $this->pwd;
     }
 }
