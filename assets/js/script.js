@@ -4,37 +4,39 @@ $(document).ready(function () {
     function sendMessage() {
         var message = $('#message').val();
 
-        // Initialisiere "recently"
-        var formattedTime = "recently ";
+        // Initialisiere "recently" für Zeitstempel
+        var formattedTime = "kürzlich ";
 
-        // Nachricht des Nutzers zum Chat-Verlauf hinzufügen
+        // Benutzer-Nachricht in den Chat-Verlauf einfügen
         $('#chat-history').append(
             '<div class="message user">' +
-                '<div class="header"><strong>You:</strong></div>' +
+                '<div class="header"><strong>Du:</strong></div>' +
                 '<div class="content">' + message + '</div>' +
                 '<div class="time" id="user_time">' + formattedTime + '</div>' +
             '</div>'
         );
 
-        // Bot-Nachricht Platzhalter zum Chat-Verlauf hinzufügen
+        // Platzhalter für Bot-Nachricht in den Chat-Verlauf einfügen
         $('#chat-history').append(
             '<div class="message bot">' +
-                '<div class="content" id="bot_msg"><strong>Bot:</strong><br>' + '<div id="dots" style="display: none;"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>' + '</div>' +
+                '<div class="content" id="bot_msg"><strong>Bot:</strong><br>' +
+                '<div id="dots" style="display: none;"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>' +
+                '</div>' +
                 '<div class="time" id="bot_time">' + formattedTime + '</div>' +
             '</div>'
         );
 
-        // Scroll zum Ende des Chat-Verlaufs
+        // Automatisches Scrollen zum Ende des Chat-Verlaufs
         $('#chat-history').scrollTop($('#chat-history')[0].scrollHeight);
 
-        // Zeige die animierten Punkte an
+        // Zeige die animierten Punkte (Ladeanimation)
         const dots = document.getElementById('dots');
         dots.style.display = 'flex';
 
-        // Nachrichtentextfeld leeren
+        // Leere das Eingabefeld
         $('#message').val('');
 
-        // AJAX-Request an den Server
+        // AJAX-Request an den Server, um die Bot-Nachricht zu erhalten
         $.ajax({
             type: 'POST',
             url: 'index.php?act=process_message',
@@ -45,7 +47,7 @@ $(document).ready(function () {
                 if (response.error) {
                     alert(response.error);
                 } else {
-                    // Formatierung der Zeit
+                    // Zeitstempel formatieren (heute oder spezifisches Datum)
                     var currentDate = new Date(response.now);
                     var currDay = currentDate.getDate().toString().padStart(2, '0');
                     var currMonth = (currentDate.getMonth() + 1).toString().padStart(2, '0');
@@ -53,22 +55,22 @@ $(document).ready(function () {
                     var currDate = currDay + "." + currMonth + "." + currYear;
 
                     var formattedTime = currDate === response.time.slice(0, 10)
-                        ? "today " + response.time.slice(-5)
+                        ? "heute " + response.time.slice(-5)
                         : response.time;
 
-                    // Bot-Nachricht anzeigen
+                    // Bot-Nachricht aktualisieren und anzeigen
                     document.getElementById("bot_msg").innerHTML = "<strong>Bot:</strong><br>" + response.bot_message.replace("\n", "<br>");
                     document.getElementById("bot_msg").id = "";
 
-                    // Zeit der Benutzernachricht aktualisieren
+                    // Zeitstempel der Benutzernachricht aktualisieren
                     document.getElementById("user_time").innerHTML = formattedTime;
                     document.getElementById("user_time").id = "";
 
-                    // Zeit der Bot-Nachricht aktualisieren
+                    // Zeitstempel der Bot-Nachricht aktualisieren
                     document.getElementById("bot_time").innerHTML = formattedTime;
                     document.getElementById("bot_time").id = "";
 
-                    // Scroll wieder ans Ende
+                    // Automatisches Scrollen zum Ende des Chat-Verlaufs nach der Antwort
                     $('#chat-history').scrollTop($('#chat-history')[0].scrollHeight);
                 }
             },
@@ -79,19 +81,17 @@ $(document).ready(function () {
         });
     }
 
-    // Senden-Button und Enter-Taste für das Absenden der Nachricht
+    // Nachricht senden bei Formular-Submit
     $('#chat-form').submit(function (e) {
-        e.preventDefault();
-        sendMessage();
+        e.preventDefault(); // Verhindert das Neuladen der Seite
+        sendMessage(); // Nachricht senden
     });
 
-    // Drücken der Enter-Taste ohne Shift zum Senden der Nachricht
+    // Nachricht senden bei Enter-Taste ohne Shift
     $('#message').keydown(function (e) {
         if (e.key === 'Enter' && !e.shiftKey) {
-            e.preventDefault(); // Verhindert Zeilenumbruch
+            e.preventDefault(); // Verhindert den Zeilenumbruch
             sendMessage(); // Nachricht senden
         }
     });
 });
-
-

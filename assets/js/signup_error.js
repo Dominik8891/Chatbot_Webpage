@@ -1,7 +1,10 @@
+// Wartet, bis das DOM vollständig geladen ist, bevor das Skript ausgeführt wird.
 document.addEventListener("DOMContentLoaded", function() {
-    var error = "###ERROR###"; // PHP setzt hier den Fehlercode ein
     
-    // Fehler auswerten und entsprechende Nachricht anzeigen
+    // PHP ersetzt diesen Platzhalter durch den tatsächlichen Fehlercode.
+    var error = "###ERROR###";
+
+    // Wenn ein Fehler vorhanden ist, wird der entsprechende Alert ausgegeben.
     if (error) {
         if (error === "username") {
             alert("Username already exists. Please choose another one.");

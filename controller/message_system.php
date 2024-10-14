@@ -100,7 +100,7 @@ function show_chatbot()
             $time = $message['timestamp']; // Holt die Zeit des aktuellen Nachrichten-Items
             // Falls die Nachricht heute gesendet wurde, wird "today" anstelle des Datums angezeigt
             if (substr($message['timestamp'], 0, 10) == date('d.m.Y')) {
-                $time = "today" . substr($message['timestamp'], 10);
+                $time = "heute" . substr($message['timestamp'], 10);
             }
             // Unterscheidet zwischen Benutzer- und Bot-Nachrichten
             if ($message['role'] === 'user') {

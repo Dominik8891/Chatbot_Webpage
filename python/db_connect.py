@@ -5,9 +5,11 @@ import mysql.connector
 from mysql.connector import Error
 from datetime import datetime
 
+# Lädt die Umgebungsvariablen aus der .env-Datei
 dotenv_path = os.path.join(os.path.dirname(__file__), '..',  'config', '.env')
 load_dotenv(dotenv_path=dotenv_path)
 
+# Datenbankverbindungsdetails aus Umgebungsvariablen laden
 host = os.getenv('HOST')
 port = os.getenv('PORT')
 user = os.getenv('DBUSERNAME')
@@ -16,6 +18,7 @@ dbname = os.getenv('DBNAME')
 
 print(f"Host: {host}, Port: {port}, User: {user}, Passwort: {pwd}, DB: {dbname}")
 
+# Erstellt eine Verbindung zur MySQL-Datenbank
 def create_connection():
     connection = None
     try:
@@ -32,19 +35,19 @@ def create_connection():
 
     return connection
 
-
+# Führt eine SQL-Abfrage aus (z. B. INSERT, UPDATE, DELETE)
 def execute_query(connection, query, params = None):
     cursor = connection.cursor()
     try:
         cursor.execute(query, params)
-        connection.commit() # Notwendig für INSER, UPDATE oder DELETE
+        connection.commit()  # Notwendig für Änderungen in der DB
         print("Abfrage erfolgreich ausgeführt")
     except Error as e:
         print(f"Fehler bei der Abfrage: {e}")
     finally:
         cursor.close()
 
-
+# Ruft Daten aus der Datenbank ab (z. B. SELECT)
 def fetch_query_results(connection, query, params=None):
     cursor = connection.cursor()
     result = None
@@ -57,14 +60,13 @@ def fetch_query_results(connection, query, params=None):
     finally:
         cursor.close()
 
-
+# Schließt die Datenbankverbindung
 def close_connection(connection):
     if connection.is_connected():
         connection.close()
         print("Die Verbindung zur Datenbank wurde geschlossen.")
 
-
-
+# Holt den Chatverlauf eines Benutzers (limitierte Anzahl von Nachrichten)
 def get_history(id, limit=5):
     connection = create_connection()
     query = """WITH last_user_msg AS (
@@ -94,51 +96,38 @@ def get_history(id, limit=5):
                   AND deleted = 0
                   ORDER BY timestamp DESC;"""
     
-    params = (id, limit, id, id)  # Verwende ein Tuple hier
+    params = (id, limit, id, id)  # Übergibt die Parameter für die Abfrage
     results = fetch_query_results(connection, query, params)
     close_connection(connection)
     try:
         chat_list = []
+        # Erstellen des Chatverlaufs im JSON-Format
         for entry in results:
-            if(entry[0] == 'bot'):
-                role = 'assistant'
-            else:
-                role = entry[0]
-            if isinstance(entry[2], datetime):
-                timestamp = entry[2].strftime('%Y-%m-%d %H:%M:%S')
-            else:
-                timestamp = entry[2]
+            role = 'assistant' if entry[0] == 'bot' else entry[0]
+            timestamp = entry[2].strftime('%Y-%m-%d %H:%M:%S') if isinstance(entry[2], datetime) else entry[2]
             chat_entry = {
-                "role": role,      # "user" oder "bot"
-                "content": entry[1],   # Die Nachricht
-                "time": timestamp       # Zeitstempel
+                "role": role,
+                "content": entry[1],
+                "time": timestamp
             }
             chat_list.append(chat_entry)
-        history_list = []
-        history_list_data = {"chat_history": chat_list}
-        history_list.append(history_list_data)
-        return history_list
+        return [{"chat_history": chat_list}]
     except Error as e:
-        data = "test"
-        return data
+        return "test"
 
-
+# Holt die letzte Nachricht eines Benutzers
 def get_msg(id):
     connection = create_connection()
-    query = """SELECT msg FROM chatlog WHERE user_id = %s ORDER BY timestamp DESC LIMIT 1
-            """
+    query = """SELECT msg FROM chatlog WHERE user_id = %s ORDER BY timestamp DESC LIMIT 1"""
     params = (id,)
     results = fetch_query_results(connection, query, params)
-    #json_output = json.dumps(results, default=str)
     close_connection(connection)
     return results[0][0]
 
+# Fügt eine neue Nachricht in die Datenbank ein
 def insert_msg(id, msg, msg_type):
     connection = create_connection()
     query = """INSERT INTO chatlog (user_id, msg, msg_type)
-                            VALUES (%s, %s, %s);
-    """
-    params = (id, msg, msg_type)  # Verwende ein Tuple hier
+                            VALUES (%s, %s, %s);"""
+    params = (id, msg, msg_type)  # Übergibt die Parameter für die Abfrage
     execute_query(connection, query, params)
-
-    
